@@ -87,12 +87,12 @@ struct EventEditView: View {
                     Button("Cancel") { context.rollback(); dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
+                    Button("Save", action: saveAndDismiss)
                 }
             }
         }
         // An existing event is edited live; leaving the screen commits it.
-        .onDisappear { if !isNew { save(dismissAfterwards: false) } }
+        .onDisappear { if !isNew { commit() } }
     }
 
     // MARK: Load and save
@@ -130,7 +130,12 @@ struct EventEditView: View {
         ) ?? defaultDate
     }
 
-    private func save(dismissAfterwards: Bool = true) {
+    private func saveAndDismiss() {
+        commit()
+        dismiss()
+    }
+
+    private func commit() {
         let target = event ?? CareEvent.make(in: context, patient: patient)
         target.categoryEnum = category
         target.timestamp = timestamp
@@ -142,7 +147,6 @@ struct EventEditView: View {
         if target.personName == nil { target.personName = AppSettings.personName }
 
         PersistenceController.shared.save(context)
-        if dismissAfterwards { dismiss() }
     }
 }
 
