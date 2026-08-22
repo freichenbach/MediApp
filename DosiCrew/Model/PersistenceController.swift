@@ -25,14 +25,26 @@ final class PersistenceController {
     /// showing an empty plan that looks like "no medications".
     private(set) var loadError: Error?
 
+    /// True when the CloudKit stores could not be opened and the app fell back
+    /// to a local-only store. Nothing syncs in that state, which the people
+    /// sharing a plan must be told about.
+    private(set) var usesLocalFallback = false
+
+    /// The unit tests are hosted by the app, so `@main` runs before them. They
+    /// must not touch the real, iCloud-backed store.
+    static var isRunningUnitTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
     var viewContext: NSManagedObjectContext { container.viewContext }
 
     // MARK: - Init
 
     init(inMemory: Bool = false) {
+        let useInMemoryStore = inMemory || Self.isRunningUnitTests
         container = NSPersistentCloudKitContainer(name: "DosiCrew")
 
-        if inMemory {
+        if useInMemoryStore {
             let description = NSPersistentStoreDescription()
             description.url = URL(fileURLWithPath: "/dev/null")
             description.type = NSInMemoryStoreType
@@ -59,6 +71,10 @@ final class PersistenceController {
             }
         }
 
+        if !useInMemoryStore && container.persistentStoreCoordinator.persistentStores.isEmpty {
+            loadLocalFallbackStore()
+        }
+
         // Records arriving from CloudKit must not clobber a local edit that has
         // not been pushed yet, and vice versa: merge property by property.
         container.viewContext.automaticallyMergesChangesFromParent = true
@@ -66,11 +82,41 @@ final class PersistenceController {
         container.viewContext.transactionAuthor = "app"
         container.viewContext.name = "viewContext"
 
-        if !inMemory {
+        if !useInMemoryStore {
             do {
                 try container.viewContext.setQueryGenerationFrom(.current)
             } catch {
                 Self.logger.error("Query generation pinning failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Opens `private.sqlite` again, this time without CloudKit mirroring.
+    ///
+    /// Deliberately the *same* file the mirrored store uses: pointing at a
+    /// separate one would split the history in two, and a dose recorded during
+    /// the outage would look lost once syncing recovered. Losing sync is
+    /// survivable, losing a logged dose is not.
+    private func loadLocalFallbackStore() {
+        Self.logger.warning("CloudKit stores did not open — retrying without mirroring")
+
+        let url = NSPersistentContainer.defaultDirectoryURL().appendingPathComponent("private.sqlite")
+        let description = NSPersistentStoreDescription(url: url)
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        container.persistentStoreDescriptions = [description]
+
+        container.loadPersistentStores { [weak self] description, error in
+            guard let self else { return }
+            if let error {
+                self.loadError = error
+                Self.logger.error("Local fallback store failed too: \(error.localizedDescription)")
+                return
+            }
+            self.usesLocalFallback = true
+            self.loadError = nil
+            if let url = description.url {
+                self.privateStore = self.container.persistentStoreCoordinator.persistentStore(for: url)
             }
         }
     }
@@ -108,6 +154,16 @@ final class PersistenceController {
     func save(_ context: NSManagedObjectContext? = nil) -> Bool {
         let context = context ?? viewContext
         guard context.hasChanges else { return true }
+
+        // Saving into a coordinator with no stores raises an Objective-C
+        // exception, which Swift cannot catch — the app would be terminated
+        // rather than returning an error. Refuse the save instead.
+        guard !container.persistentStoreCoordinator.persistentStores.isEmpty else {
+            Self.logger.error("Save skipped: no persistent store is loaded")
+            context.rollback()
+            return false
+        }
+
         do {
             try context.save()
             return true

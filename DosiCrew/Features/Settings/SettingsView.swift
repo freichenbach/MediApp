@@ -50,6 +50,16 @@ struct SettingsView: View {
                     } label: {
                         Label("Share with other people", systemImage: "person.2.fill")
                     }
+                } footer: {
+                    if PersistenceController.shared.usesLocalFallback {
+                        // People rely on this plan being shared. If it silently
+                        // is not, they must hear about it here.
+                        Label(
+                            "iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .foregroundStyle(.orange)
+                    }
                 }
 
                 Section {

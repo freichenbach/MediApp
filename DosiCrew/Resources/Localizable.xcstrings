@@ -599,6 +599,29 @@
         }
       }
     },
+    "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DosiCrew hilft beim Organisieren, wer wann was gibt. Sie prüft weder Dosierungen noch Wechsel- oder Nebenwirkungen — das bleibt Sache von Ärztin, Arzt oder Apotheke."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DosiCrew te ayuda a organizar quién da qué y cuándo. No comprueba dosis, interacciones ni contraindicaciones: eso corresponde a tu médico o farmacia."
+          }
+        }
+      }
+    },
     "Drops": {
       "extractionState": "manual",
       "localizations": {
@@ -1519,29 +1542,6 @@
         }
       }
     },
-    "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DosiCrew hilft beim Organisieren, wer wann was gibt. Sie prüft weder Dosierungen noch Wechsel- oder Nebenwirkungen — das bleibt Sache von Ärztin, Arzt oder Apotheke."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DosiCrew te ayuda a organizar quién da qué y cuándo. No comprueba dosis, interacciones ni contraindicaciones: eso corresponde a tu médico o farmacia."
-          }
-        }
-      }
-    },
     "Medication": {
       "extractionState": "manual",
       "localizations": {
@@ -2182,6 +2182,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Personas"
+          }
+        }
+      }
+    },
+    "Plan cannot be opened": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan lässt sich nicht öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan cannot be opened"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede abrir el plan"
           }
         }
       }
@@ -3106,6 +3129,29 @@
         }
       }
     },
+    "The medication plan could not be loaded on this iPhone. Restart the app; if that does not help, reinstall it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Medikamentenplan konnte auf diesem iPhone nicht geladen werden. Starte die App neu; hilft das nicht, installiere sie neu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The medication plan could not be loaded on this iPhone. Restart the app; if that does not help, reinstall it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar el plan de medicación en este iPhone. Reinicia la app; si no funciona, vuelve a instalarla."
+          }
+        }
+      }
+    },
     "The others lose access immediately. Your own copy of the plan stays on this iPhone.": {
       "extractionState": "manual",
       "localizations": {
@@ -3700,6 +3746,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "p. ej. con comida"
+          }
+        }
+      }
+    },
+    "iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud ist gerade nicht verfügbar. Alles wird auf diesem iPhone gespeichert, aber nichts wird geteilt — die anderen sehen nicht, was du abhakst."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud no está disponible ahora mismo. Todo se guarda en este iPhone, pero no se comparte nada: los demás no ven lo que marcas."
           }
         }
       }

@@ -14,6 +14,8 @@ struct RootView: View {
 
     @AppStorage(AppSettings.personNameKey) private var personName: String = ""
 
+    private let persistence = PersistenceController.shared
+
     @State private var selection: Tab = .today
     @State private var showingNamePrompt = false
 
@@ -46,6 +48,17 @@ struct RootView: View {
                     WhoAreYouView(personName: $personName)
                         .interactiveDismissDisabled()
                 }
+            } else if let error = persistence.loadError {
+                ContentUnavailableView {
+                    Label("Plan cannot be opened", systemImage: "exclamationmark.icloud")
+                } description: {
+                    Text("The medication plan could not be loaded on this iPhone. Restart the app; if that does not help, reinstall it.")
+                } actions: {
+                    Text(error.localizedDescription)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             } else {
                 ProgressView()
                     .task { ensurePatientExists() }
@@ -59,7 +72,7 @@ struct RootView: View {
     private func ensurePatientExists() {
         guard patients.isEmpty else { return }
         Patient.makeDefault(in: context)
-        PersistenceController.shared.save(context)
+        persistence.save(context)
     }
 }
 
