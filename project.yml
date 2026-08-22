@@ -1,0 +1,57 @@
+name: MediApp
+options:
+  bundleIdPrefix: es.reichenbach
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+
+targets:
+  MediApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: MediApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.MediApp
+        PRODUCT_NAME: MediApp
+        INFOPLIST_FILE: Config/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Config/MediApp.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+
+  MediAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: MediAppTests
+    dependencies:
+      - target: MediApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.MediAppTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  MediApp:
+    build:
+      targets:
+        MediApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - MediAppTests
