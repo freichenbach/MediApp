@@ -1,5 +1,7 @@
 # DosiCrew
 
+[![Build & Test](https://github.com/freichenbach/MediApp/actions/workflows/ci.yml/badge.svg?branch=claude/medication-management-iphone-app-b4jg7a)](https://github.com/freichenbach/MediApp/actions/workflows/ci.yml)
+
 **Medikamente gemeinsam im Blick**
 
 Eine iPhone-App, mit der sich mehrere Personen — Eltern, Großeltern, Kita — über
@@ -110,14 +112,15 @@ pip install Pillow && python3 Tools/make_icon.py
 
 ## Tests
 
-`DosiCrewTests` deckt die Terminlogik ab und braucht weder iCloud noch ein Gerät:
+35 Tests, die die Terminlogik abdecken und weder iCloud noch ein Gerät
+brauchen. Sie laufen bei jedem Push auf dem macOS-Runner mit:
 
-- `ScheduleEngineTests` — Wiederholungsmuster, Behandlungszeiträume,
+- `ScheduleEngineTests` (19) — Wiederholungsmuster, Behandlungszeiträume,
   überlappende Regeln, Zeitzonen und die Sommerzeit-Umstellung (eine Gabe um
   02:30 darf am Umstellungstag nicht verschwinden), Vorausplanung für
   Erinnerungen.
-- `DoseMatchingTests` — Zuordnung von Gaben zu geplanten Slots, Erkennung der
-  Doppelgabe, Extra-Gaben, tagesübergreifende Gaben, Überfälligkeit.
+- `DoseMatchingTests` (16) — Zuordnung von Gaben zu geplanten Slots, Erkennung
+  der Doppelgabe, Extra-Gaben, tagesübergreifende Gaben, Überfälligkeit.
 
 ## Wie es gebaut ist
 
