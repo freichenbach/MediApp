@@ -38,6 +38,10 @@ final class PersistenceController {
 
     var viewContext: NSManagedObjectContext { container.viewContext }
 
+    /// Reports whether mirroring is actually exchanging anything, so the UI can
+    /// say so rather than let a silent outage pass for a quiet day.
+    let syncMonitor = SyncMonitor()
+
     // MARK: - Init
 
     init(inMemory: Bool = false) {
@@ -74,6 +78,13 @@ final class PersistenceController {
         if !useInMemoryStore && container.persistentStoreCoordinator.persistentStores.isEmpty {
             loadLocalFallbackStore()
         }
+
+        // Only meaningful once it is clear whether mirroring is running at all.
+        syncMonitor.start(enabled: !useInMemoryStore && !usesLocalFallback)
+
+        #if DEBUG
+        if !useInMemoryStore { initializeCloudKitSchemaIfRequested() }
+        #endif
 
         // Records arriving from CloudKit must not clobber a local edit that has
         // not been pushed yet, and vice versa: merge property by property.
@@ -145,6 +156,36 @@ final class PersistenceController {
 
         return [privateDescription, sharedDescription]
     }
+
+    // MARK: - CloudKit schema
+
+    #if DEBUG
+    /// Creates the CloudKit **development** schema from the Core Data model.
+    ///
+    /// This exists because of a chicken-and-egg problem: TestFlight and App
+    /// Store builds always talk to the *production* environment, and the schema
+    /// has to be there before the first such build — but the schema itself is
+    /// only ever generated from a run in the development environment. So it has
+    /// to happen once, from a development build on a Mac or a device signed
+    /// into iCloud, and is then deployed to production in the CloudKit Console.
+    ///
+    /// Guarded twice over: `#if DEBUG` keeps it out of any release binary, and
+    /// the launch argument keeps it out of ordinary debug runs. Run it with:
+    ///
+    ///     Product → Scheme → Edit Scheme → Run → Arguments
+    ///     add `-DosiCrewInitializeCloudKitSchema`
+    ///
+    /// See the "CloudKit-Schema anlegen" runbook in README.md.
+    private func initializeCloudKitSchemaIfRequested() {
+        guard ProcessInfo.processInfo.arguments.contains("-DosiCrewInitializeCloudKitSchema") else { return }
+        do {
+            try container.initializeCloudKitSchema(options: [])
+            Self.logger.notice("CloudKit development schema initialized — deploy it to production in the CloudKit Console")
+        } catch {
+            Self.logger.error("Initializing the CloudKit schema failed: \(error.localizedDescription)")
+        }
+    }
+    #endif
 
     // MARK: - Saving
 

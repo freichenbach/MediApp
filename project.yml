@@ -21,11 +21,15 @@ targets:
     sources:
       - path: DosiCrew
     settings:
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.Release.entitlements
       base:
         PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.DosiCrew
         PRODUCT_NAME: DosiCrew
         INFOPLIST_FILE: Config/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
@@ -40,6 +44,11 @@ targets:
     dependencies:
       - target: DosiCrew
     settings:
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.entitlements
+        Release:
+          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.Release.entitlements
       base:
         PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.DosiCrewTests
         GENERATE_INFOPLIST_FILE: YES

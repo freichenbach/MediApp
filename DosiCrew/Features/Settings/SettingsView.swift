@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Environment(\.managedObjectContext) private var context
 
     @AppStorage(AppSettings.personNameKey) private var personName: String = ""
+    @ObservedObject private var sync = PersistenceController.shared.syncMonitor
     @AppStorage(AppSettings.remindersEnabledKey) private var remindersEnabled: Bool = true
     @AppStorage(AppSettings.overdueRemindersKey) private var overdueReminders: Bool = true
 
@@ -51,15 +52,7 @@ struct SettingsView: View {
                         Label("Share with other people", systemImage: "person.2.fill")
                     }
                 } footer: {
-                    if PersistenceController.shared.usesLocalFallback {
-                        // People rely on this plan being shared. If it silently
-                        // is not, they must hear about it here.
-                        Label(
-                            "iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off.",
-                            systemImage: "exclamationmark.triangle.fill"
-                        )
-                        .foregroundStyle(.orange)
-                    }
+                    syncStatus
                 }
 
                 Section {
@@ -99,6 +92,36 @@ struct SettingsView: View {
             .onChange(of: hasBirthDate) { _, _ in savePatient() }
             .onChange(of: birthDate) { _, _ in savePatient() }
         }
+    }
+
+    /// People rely on this plan being shared. A sync that silently does nothing
+    /// is more dangerous than a visible error, so every state says what it is.
+    @ViewBuilder
+    private var syncStatus: some View {
+        if PersistenceController.shared.usesLocalFallback {
+            warning("iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off.")
+        } else if !sync.isEnabled {
+            EmptyView()
+        } else if let error = sync.lastErrorDescription {
+            warning("Syncing is failing, so the others may not be seeing your ticks. \(error)")
+        } else if let lastSuccess = sync.lastSuccess {
+            Label {
+                Text("Last synced \(lastSuccess.formatted(date: .omitted, time: .shortened))")
+            } icon: {
+                Image(systemName: "checkmark.icloud")
+            }
+            .foregroundStyle(.secondary)
+        } else if sync.isSyncing {
+            Label("Syncing…", systemImage: "arrow.triangle.2.circlepath")
+                .foregroundStyle(.secondary)
+        } else {
+            warning("Nothing has synced since the app started. Until it does, the others cannot see what you tick off.")
+        }
+    }
+
+    private func warning(_ text: LocalizedStringKey) -> some View {
+        Label(text, systemImage: "exclamationmark.triangle.fill")
+            .foregroundStyle(.orange)
     }
 
     private func load() {

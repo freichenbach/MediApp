@@ -11,6 +11,7 @@
 		1A2B3C4D5E6F708192A00007 /* DosiCrewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DosiCrewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A2B3C4D5E6F708192A0001B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708192A0001C /* DosiCrew.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DosiCrew.entitlements; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0001E /* DosiCrew.Release.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DosiCrew.Release.entitlements; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708192A0001F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -62,6 +63,7 @@
 			children = (
 				1A2B3C4D5E6F708192A0001B /* Info.plist */,
 				1A2B3C4D5E6F708192A0001C /* DosiCrew.entitlements */,
+				1A2B3C4D5E6F708192A0001E /* DosiCrew.Release.entitlements */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -307,7 +309,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Config/DosiCrew.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Config/DosiCrew.Release.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";

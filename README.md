@@ -68,11 +68,75 @@ Was der Workflow bewusst tut:
 - Er baut **ohne Signierung** (`CODE_SIGNING_ALLOWED=NO`). Für den Simulator
   reicht das; CloudKit und Push lassen sich damit aber nicht ausprobieren.
 
-Was damit **nicht** geht: die App auf ein echtes iPhone bringen. Dafür braucht
-es Signierung mit einem Apple-Developer-Zertifikat. Ohne eigenen Mac sind die
-realistischen Wege ein gemieteter Mac in der Cloud (MacStadium, Scaleway,
-AWS EC2 Mac — stundenweise) oder ein Fastlane-Setup mit App-Store-Connect-
-API-Key, das aus derselben CI heraus nach TestFlight lädt.
+## Auf das iPhone
+
+`.github/workflows/release.yml` archiviert, signiert und lädt nach TestFlight —
+ebenfalls auf dem macOS-Runner. Er läuft **nicht** bei jedem Push, sondern nur
+von Hand oder bei einem Tag `v*`: jede Nummer ist in TestFlight nur einmal
+verwendbar, und macOS-Minuten zählen zehnfach.
+
+Signiert wird über `xcodebuild -allowProvisioningUpdates` mit einem
+App-Store-Connect-API-Schlüssel. Xcode legt Zertifikat und Profil selbst an;
+damit entfallen Fastlane `match` und ein eigenes Zertifikats-Repository.
+
+### Einmalig einrichten
+
+Voraussetzung ist das **Apple Developer Program** (99 $/Jahr, Beitritt geht über
+die Apple-Developer-App auf dem iPhone). Alles Weitere läuft im Browser, auch
+auf dem iPad:
+
+| Was | Wo | Wert |
+|---|---|---|
+| App ID | developer.apple.com → Identifiers | `es.reichenbach.DosiCrew`, mit **iCloud** und **Push Notifications** |
+| CloudKit-Container | ebenda, beim iCloud-Häkchen | `iCloud.es.reichenbach.DosiCrew` |
+| App-Datensatz | App Store Connect → Apps → **+** | Name `DosiCrew`, Untertitel `Medikamente gemeinsam im Blick` |
+| API-Schlüssel | App Store Connect → Users & Access → Integrations | Rolle **App Manager**; die `.p8` ist nur einmal ladbar |
+
+Dann vier Secrets unter *Settings → Secrets and variables → Actions*:
+
+| Secret | Inhalt |
+|---|---|
+| `APPLE_TEAM_ID` | die zehnstellige Team-ID |
+| `ASC_KEY_ID` | Key-ID des API-Schlüssels |
+| `ASC_ISSUER_ID` | Issuer-ID |
+| `ASC_KEY_P8_BASE64` | Inhalt der `.p8`, base64-kodiert |
+
+Fehlt eines davon, bricht der Workflow gleich im ersten Schritt mit einer
+klaren Meldung ab, statt später beim Signieren.
+
+### CloudKit-Schema anlegen
+
+Der eine Schritt, der sich nicht automatisieren lässt. **TestFlight-Builds
+laufen immer gegen die Produktionsumgebung von CloudKit, und das Schema muss
+dort liegen, bevor der erste Build hochgeht** — erzeugt wird es aber nur von
+einem Lauf in der *Development*-Umgebung. Das braucht einmalig einen Mac oder
+ein Gerät mit iCloud-Anmeldung; ein stundenweise gemieteter Cloud-Mac
+(MacStadium, Scaleway, MacinCloud) reicht dafür.
+
+1. Repo klonen, `DosiCrew.xcodeproj` öffnen, Team unter *Signing & Capabilities*
+   wählen.
+2. Am Mac in iCloud anmelden.
+3. *Product → Scheme → Edit Scheme → Run → Arguments*: Startargument
+   `-DosiCrewInitializeCloudKitSchema` hinzufügen.
+4. Einmal im Simulator starten. In der Konsole muss stehen:
+   *„CloudKit development schema initialized"*.
+5. Startargument wieder entfernen — es ist ohnehin `#if DEBUG`-geschützt und
+   kann nie in einen Release-Build geraten, kostet sonst aber bei jedem Start
+   Zeit.
+6. `icloud.developer.apple.com` → CloudKit Console → Schema prüfen →
+   **Deploy Schema Changes** nach Production.
+
+Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
+Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
+
+### Läuft die Synchronisation überhaupt?
+
+Bis das Schema in Produktion liegt, baut und startet die App, synchronisiert
+aber nichts. Damit dieser Zustand nicht wie ein ruhiger Tag aussieht, zeigen
+die Einstellungen unter *Teilen* den echten Zustand: Zeitpunkt der letzten
+erfolgreichen Synchronisation, oder eine Warnung, wenn seit dem Start nichts
+ausgetauscht wurde. Bei einer geteilten Medikamentenliste ist der stille
+Ausfall gefährlicher als eine Fehlermeldung.
 
 ## Mit Mac
 
