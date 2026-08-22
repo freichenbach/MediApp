@@ -7,16 +7,16 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		1A2B3C4D5E6F708192A00006 /* Dosia.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dosia.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A2B3C4D5E6F708192A00007 /* DosiaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DosiaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A2B3C4D5E6F708192A00006 /* DosiCrew.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DosiCrew.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A2B3C4D5E6F708192A00007 /* DosiCrewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DosiCrewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A2B3C4D5E6F708192A0001B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1A2B3C4D5E6F708192A0001C /* Dosia.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dosia.entitlements; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0001C /* DosiCrew.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DosiCrew.entitlements; sourceTree = "<group>"; };
 		1A2B3C4D5E6F708192A0001F /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1A2B3C4D5E6F708192A0000E /* Dosia */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Dosia; sourceTree = "<group>"; };
-		1A2B3C4D5E6F708192A0000F /* DosiaTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = DosiaTests; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0000E /* DosiCrew */ = {isa = PBXFileSystemSynchronizedRootGroup; path = DosiCrew; sourceTree = "<group>"; };
+		1A2B3C4D5E6F708192A0000F /* DosiCrewTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = DosiCrewTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,8 +42,8 @@
 			children = (
 				1A2B3C4D5E6F708192A0001F /* README.md */,
 				1A2B3C4D5E6F708192A0001D /* Config */,
-				1A2B3C4D5E6F708192A0000E /* Dosia */,
-				1A2B3C4D5E6F708192A0000F /* DosiaTests */,
+				1A2B3C4D5E6F708192A0000E /* DosiCrew */,
+				1A2B3C4D5E6F708192A0000F /* DosiCrewTests */,
 				1A2B3C4D5E6F708192A00003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -51,8 +51,8 @@
 		1A2B3C4D5E6F708192A00003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A2B3C4D5E6F708192A00006 /* Dosia.app */,
-				1A2B3C4D5E6F708192A00007 /* DosiaTests.xctest */,
+				1A2B3C4D5E6F708192A00006 /* DosiCrew.app */,
+				1A2B3C4D5E6F708192A00007 /* DosiCrewTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,7 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				1A2B3C4D5E6F708192A0001B /* Info.plist */,
-				1A2B3C4D5E6F708192A0001C /* Dosia.entitlements */,
+				1A2B3C4D5E6F708192A0001C /* DosiCrew.entitlements */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -69,9 +69,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1A2B3C4D5E6F708192A00004 /* Dosia */ = {
+		1A2B3C4D5E6F708192A00004 /* DosiCrew */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A2B3C4D5E6F708192A00011 /* Build configuration list for PBXNativeTarget "Dosia" */;
+			buildConfigurationList = 1A2B3C4D5E6F708192A00011 /* Build configuration list for PBXNativeTarget "DosiCrew" */;
 			buildPhases = (
 				1A2B3C4D5E6F708192A00008 /* Sources */,
 				1A2B3C4D5E6F708192A00009 /* Frameworks */,
@@ -82,18 +82,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1A2B3C4D5E6F708192A0000E /* Dosia */,
+				1A2B3C4D5E6F708192A0000E /* DosiCrew */,
 			);
-			name = Dosia;
+			name = DosiCrew;
 			packageProductDependencies = (
 			);
-			productName = Dosia;
-			productReference = 1A2B3C4D5E6F708192A00006 /* Dosia.app */;
+			productName = DosiCrew;
+			productReference = 1A2B3C4D5E6F708192A00006 /* DosiCrew.app */;
 			productType = "com.apple.product-type.application";
 		};
-		1A2B3C4D5E6F708192A00005 /* DosiaTests */ = {
+		1A2B3C4D5E6F708192A00005 /* DosiCrewTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A2B3C4D5E6F708192A00012 /* Build configuration list for PBXNativeTarget "DosiaTests" */;
+			buildConfigurationList = 1A2B3C4D5E6F708192A00012 /* Build configuration list for PBXNativeTarget "DosiCrewTests" */;
 			buildPhases = (
 				1A2B3C4D5E6F708192A0000B /* Sources */,
 				1A2B3C4D5E6F708192A0000C /* Frameworks */,
@@ -105,13 +105,13 @@
 				1A2B3C4D5E6F708192A00019 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				1A2B3C4D5E6F708192A0000F /* DosiaTests */,
+				1A2B3C4D5E6F708192A0000F /* DosiCrewTests */,
 			);
-			name = DosiaTests;
+			name = DosiCrewTests;
 			packageProductDependencies = (
 			);
-			productName = DosiaTests;
-			productReference = 1A2B3C4D5E6F708192A00007 /* DosiaTests.xctest */;
+			productName = DosiCrewTests;
+			productReference = 1A2B3C4D5E6F708192A00007 /* DosiCrewTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -133,7 +133,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 1A2B3C4D5E6F708192A00010 /* Build configuration list for PBXProject "Dosia" */;
+			buildConfigurationList = 1A2B3C4D5E6F708192A00010 /* Build configuration list for PBXProject "DosiCrew" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -149,8 +149,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1A2B3C4D5E6F708192A00004 /* Dosia */,
-				1A2B3C4D5E6F708192A00005 /* DosiaTests */,
+				1A2B3C4D5E6F708192A00004 /* DosiCrew */,
+				1A2B3C4D5E6F708192A00005 /* DosiCrewTests */,
 			);
 		};
 /* End PBXProject section */
@@ -192,7 +192,7 @@
 /* Begin PBXTargetDependency section */
 		1A2B3C4D5E6F708192A00019 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 1A2B3C4D5E6F708192A00004 /* Dosia */;
+			target = 1A2B3C4D5E6F708192A00004 /* DosiCrew */;
 			targetProxy = 1A2B3C4D5E6F708192A0001A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -203,7 +203,7 @@
 			containerPortal = 1A2B3C4D5E6F708192A00001 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 1A2B3C4D5E6F708192A00004;
-			remoteInfo = Dosia;
+			remoteInfo = DosiCrew;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -280,7 +280,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Config/Dosia.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Config/DosiCrew.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -292,7 +292,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.Dosia;
+				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiCrew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -307,7 +307,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Config/Dosia.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Config/DosiCrew.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -319,7 +319,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.Dosia;
+				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiCrew;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -337,11 +337,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiaTests;
+				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiCrewTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dosia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dosia";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DosiCrew.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DosiCrew";
 			};
 			name = Debug;
 		};
@@ -353,18 +353,18 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiaTests;
+				PRODUCT_BUNDLE_IDENTIFIER = es.reichenbach.DosiCrewTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dosia.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dosia";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DosiCrew.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DosiCrew";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A2B3C4D5E6F708192A00010 /* Build configuration list for PBXProject "Dosia" */ = {
+		1A2B3C4D5E6F708192A00010 /* Build configuration list for PBXProject "DosiCrew" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A2B3C4D5E6F708192A00013 /* Debug */,
@@ -373,7 +373,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A2B3C4D5E6F708192A00011 /* Build configuration list for PBXNativeTarget "Dosia" */ = {
+		1A2B3C4D5E6F708192A00011 /* Build configuration list for PBXNativeTarget "DosiCrew" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A2B3C4D5E6F708192A00015 /* Debug */,
@@ -382,7 +382,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A2B3C4D5E6F708192A00012 /* Build configuration list for PBXNativeTarget "DosiaTests" */ = {
+		1A2B3C4D5E6F708192A00012 /* Build configuration list for PBXNativeTarget "DosiCrewTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A2B3C4D5E6F708192A00017 /* Debug */,

@@ -1519,25 +1519,25 @@
         }
       }
     },
-    "Dosia helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.": {
+    "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dosia hilft beim Organisieren, wer wann was gibt. Sie prüft weder Dosierungen noch Wechsel- oder Nebenwirkungen — das bleibt Sache von Ärztin, Arzt oder Apotheke."
+            "value": "DosiCrew hilft beim Organisieren, wer wann was gibt. Sie prüft weder Dosierungen noch Wechsel- oder Nebenwirkungen — das bleibt Sache von Ärztin, Arzt oder Apotheke."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dosia helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist."
+            "value": "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dosia te ayuda a organizar quién da qué y cuándo. No comprueba dosis, interacciones ni contraindicaciones: eso corresponde a tu médico o farmacia."
+            "value": "DosiCrew te ayuda a organizar quién da qué y cuándo. No comprueba dosis, interacciones ni contraindicaciones: eso corresponde a tu médico o farmacia."
           }
         }
       }
@@ -2025,25 +2025,25 @@
         }
       }
     },
-    "Notifications are switched off for Dosia in iOS Settings.": {
+    "Notifications are switched off for DosiCrew in iOS Settings.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mitteilungen sind für Dosia in den iOS-Einstellungen ausgeschaltet."
+            "value": "Mitteilungen sind für DosiCrew in den iOS-Einstellungen ausgeschaltet."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notifications are switched off for Dosia in iOS Settings."
+            "value": "Notifications are switched off for DosiCrew in iOS Settings."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Las notificaciones están desactivadas para Dosia en los Ajustes de iOS."
+            "value": "Las notificaciones están desactivadas para DosiCrew en los Ajustes de iOS."
           }
         }
       }

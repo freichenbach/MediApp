@@ -1,4 +1,6 @@
-# Dosia
+# DosiCrew
+
+**Medikamente gemeinsam im Blick**
 
 Eine iPhone-App, mit der sich mehrere Personen — Eltern, Großeltern, Kita — über
 die Medikamentengabe an ein gemeinsames Kind abstimmen. Medikamente mit Dosierung
@@ -7,6 +9,23 @@ mit Erinnerungen und dem Festhalten besonderer Ereignisse.
 
 Die App verhindert genau zwei Fehler: die **doppelte Gabe** und die **vergessene
 Gabe**.
+
+## Name im App Store
+
+| Feld | Wert | Länge |
+|---|---|---|
+| App-Name | `DosiCrew` | 8 / 30 |
+| Untertitel | `Medikamente gemeinsam im Blick` | 30 / 30 |
+
+Beides zusammen als *ein* Feld wäre mit 41 Zeichen über dem Limit von 30, das
+App Store Connect für den Namen setzt. Aufgeteilt geht es genau auf — der
+Untertitel trifft die 30 Zeichen punktgenau. Auf dem Home-Bildschirm steht unter
+dem Icon ohnehin nur `DosiCrew`; iOS kürzt dort nach rund zwölf Zeichen.
+
+Technisch heißt die App an diesen Stellen `DosiCrew`: Bundle Identifier
+`es.reichenbach.DosiCrew`, CloudKit-Container `iCloud.es.reichenbach.DosiCrew`,
+Core-Data-Modell, Targets und Schema. Der Untertitel ist reine
+App-Store-Metadatei und steht nirgends im Code.
 
 ## Was drin ist
 
@@ -55,21 +74,21 @@ API-Key, das aus derselben CI heraus nach TestFlight lädt.
 
 ## Mit Mac
 
-1. `open Dosia.xcodeproj`
+1. `open DosiCrew.xcodeproj`
    Falls das Projekt nicht sauber öffnet, liegt eine XcodeGen-Spec bei:
    ```
    brew install xcodegen && xcodegen
    ```
    Beide Wege erzeugen dasselbe Projekt.
 
-2. **Signing & Capabilities** für das Target `Dosia`:
+2. **Signing & Capabilities** für das Target `DosiCrew`:
    - *Team* auswählen (ein **kostenpflichtiges Apple Developer Programm ist
      Pflicht** — CloudKit und Push gibt es im kostenlosen Account nicht).
-   - *Bundle Identifier* setzen. Voreingestellt ist `es.reichenbach.Dosia`.
-   - **iCloud** → *CloudKit*, Container `iCloud.es.reichenbach.Dosia` anlegen
+   - *Bundle Identifier* setzen. Voreingestellt ist `es.reichenbach.DosiCrew`.
+   - **iCloud** → *CloudKit*, Container `iCloud.es.reichenbach.DosiCrew` anlegen
      oder anpassen. Wenn du einen anderen Namen nimmst, ändere ihn an beiden
      Stellen:
-     - `Config/Dosia.entitlements`
+     - `Config/DosiCrew.entitlements`
      - `PersistenceController.cloudKitContainerIdentifier`
    - **Push Notifications** aktivieren.
    - **Background Modes** → *Remote notifications*.
@@ -80,7 +99,7 @@ API-Key, das aus derselben CI heraus nach TestFlight lädt.
 ## Icon
 
 Ein Tropfen — die Gabe — mit einem Haken darin: eine Dosis, einmal bestätigt.
-Die drei Varianten in `Dosia/Resources/Assets.xcassets/AppIcon.appiconset/`
+Die drei Varianten in `DosiCrew/Resources/Assets.xcassets/AppIcon.appiconset/`
 (hell, dunkel, getönt) sind gerenderte 1024×1024-PNGs ohne Alphakanal, wie der
 App Store es verlangt. Erzeugt werden sie von `Tools/make_icon.py`; wer Form
 oder Farbe ändern will, passt das Skript an und lässt es neu laufen:
@@ -91,7 +110,7 @@ pip install Pillow && python3 Tools/make_icon.py
 
 ## Tests
 
-`DosiaTests` deckt die Terminlogik ab und braucht weder iCloud noch ein Gerät:
+`DosiCrewTests` deckt die Terminlogik ab und braucht weder iCloud noch ein Gerät:
 
 - `ScheduleEngineTests` — Wiederholungsmuster, Behandlungszeiträume,
   überlappende Regeln, Zeitzonen und die Sommerzeit-Umstellung (eine Gabe um
@@ -103,7 +122,7 @@ pip install Pillow && python3 Tools/make_icon.py
 ## Wie es gebaut ist
 
 ```
-Dosia/
+DosiCrew/
   Model/          Core-Data-Modell, Persistenz, Sharing, ScheduleEngine
   Features/       Heute · Medikamente · Ereignisse · Teilen · Einstellungen
   Notifications/  Planung und Aktionen der Erinnerungen

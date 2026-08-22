@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-               BuildableName = "Dosia.app"
-               BlueprintName = "Dosia"
-               ReferencedContainer = "container:Dosia.xcodeproj">
+               BuildableName = "DosiCrew.app"
+               BlueprintName = "DosiCrew"
+               ReferencedContainer = "container:DosiCrew.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -27,17 +27,15 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <TestPlans>
-      </TestPlans>
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A2B3C4D5E6F708192A00005"
-               BuildableName = "DosiaTests.xctest"
-               BlueprintName = "DosiaTests"
-               ReferencedContainer = "container:Dosia.xcodeproj">
+               BuildableName = "DosiCrewTests.xctest"
+               BlueprintName = "DosiCrewTests"
+               ReferencedContainer = "container:DosiCrew.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -57,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-            BuildableName = "Dosia.app"
-            BlueprintName = "Dosia"
-            ReferencedContainer = "container:Dosia.xcodeproj">
+            BuildableName = "DosiCrew.app"
+            BlueprintName = "DosiCrew"
+            ReferencedContainer = "container:DosiCrew.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -74,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-            BuildableName = "Dosia.app"
-            BlueprintName = "Dosia"
-            ReferencedContainer = "container:Dosia.xcodeproj">
+            BuildableName = "DosiCrew.app"
+            BlueprintName = "DosiCrew"
+            ReferencedContainer = "container:DosiCrew.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

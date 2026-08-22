@@ -1,4 +1,4 @@
-"""Renders the Dosia app icon.
+"""Renders the DosiCrew app icon.
 
 A drop — the dose — with a check cut out of it: one dose, confirmed once.
 Drawn at 4x and downsampled, because Pillow has no antialiasing of its own.
@@ -68,7 +68,7 @@ VARIANTS = {
     "AppIcon-Tinted.png": ((0xE2, 0xE2, 0xE2), (0x6E, 0x6E, 0x6E), (0xFF, 0xFF, 0xFF), (0x54, 0x54, 0x54)),
 }
 
-out_dir = "Dosia/Resources/Assets.xcassets/AppIcon.appiconset"
+out_dir = "DosiCrew/Resources/Assets.xcassets/AppIcon.appiconset"
 os.makedirs(out_dir, exist_ok=True)
 for name, (top, bottom, drop, mark) in VARIANTS.items():
     img = render(top, bottom, drop, mark)
