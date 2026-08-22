@@ -12,9 +12,9 @@ final class PersistenceController {
     static let shared = PersistenceController()
 
     /// Must match the container configured under Signing & Capabilities.
-    static let cloudKitContainerIdentifier = "iCloud.es.reichenbach.MediApp"
+    static let cloudKitContainerIdentifier = "iCloud.es.reichenbach.Dosia"
 
-    static let logger = Logger(subsystem: "es.reichenbach.MediApp", category: "persistence")
+    static let logger = Logger(subsystem: "es.reichenbach.Dosia", category: "persistence")
 
     let container: NSPersistentCloudKitContainer
 
@@ -30,7 +30,7 @@ final class PersistenceController {
     // MARK: - Init
 
     init(inMemory: Bool = false) {
-        container = NSPersistentCloudKitContainer(name: "MediApp")
+        container = NSPersistentCloudKitContainer(name: "Dosia")
 
         if inMemory {
             let description = NSPersistentStoreDescription()

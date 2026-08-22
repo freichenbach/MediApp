@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-               BuildableName = "MediApp.app"
-               BlueprintName = "MediApp"
-               ReferencedContainer = "container:MediApp.xcodeproj">
+               BuildableName = "Dosia.app"
+               BlueprintName = "Dosia"
+               ReferencedContainer = "container:Dosia.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,9 +35,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A2B3C4D5E6F708192A00005"
-               BuildableName = "MediAppTests.xctest"
-               BlueprintName = "MediAppTests"
-               ReferencedContainer = "container:MediApp.xcodeproj">
+               BuildableName = "DosiaTests.xctest"
+               BlueprintName = "DosiaTests"
+               ReferencedContainer = "container:Dosia.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -57,9 +57,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-            BuildableName = "MediApp.app"
-            BlueprintName = "MediApp"
-            ReferencedContainer = "container:MediApp.xcodeproj">
+            BuildableName = "Dosia.app"
+            BlueprintName = "Dosia"
+            ReferencedContainer = "container:Dosia.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -74,9 +74,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A2B3C4D5E6F708192A00004"
-            BuildableName = "MediApp.app"
-            BlueprintName = "MediApp"
-            ReferencedContainer = "container:MediApp.xcodeproj">
+            BuildableName = "Dosia.app"
+            BlueprintName = "Dosia"
+            ReferencedContainer = "container:Dosia.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

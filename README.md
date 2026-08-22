@@ -1,4 +1,4 @@
-# MediApp
+# Dosia
 
 Eine iPhone-App, mit der sich mehrere Personen — Eltern, Großeltern, Kita — über
 die Medikamentengabe an ein gemeinsames Kind abstimmen. Medikamente mit Dosierung
@@ -30,23 +30,46 @@ Gabe**.
   denselben Plan; Änderungen erscheinen innerhalb von Sekunden auf allen iPhones.
 - **Drei Sprachen** — Deutsch, Englisch, Spanisch; die Gerätesprache entscheidet.
 
-## Erste Schritte
+## Bauen ohne Mac
 
-1. `open MediApp.xcodeproj`
-   Falls das Projekt bei dir nicht sauber öffnet, liegt eine XcodeGen-Spec bei:
+Der Build läuft in GitHub Actions auf einem macOS-Runner
+(`.github/workflows/ci.yml`): bei jedem Push wird kompiliert und die Testsuite
+im Simulator ausgeführt. Für ein privates Repository zählen macOS-Minuten
+zehnfach auf das Kontingent — bei diesem Projektumfang trotzdem unkritisch.
+
+Was der Workflow bewusst tut:
+
+- Er wählt das **neueste installierte Xcode** auf dem Runner, weil das Projekt
+  Xcode-16-Ordnersynchronisierung nutzt (`objectVersion 77`).
+- Er sucht sich per `.github/scripts/pick_simulator.py` zur Laufzeit einen
+  verfügbaren iPhone-Simulator, statt ein Modell fest zu verdrahten — GitHub
+  tauscht die Simulator-Auswahl mit jedem Image-Update aus.
+- Er baut **ohne Signierung** (`CODE_SIGNING_ALLOWED=NO`). Für den Simulator
+  reicht das; CloudKit und Push lassen sich damit aber nicht ausprobieren.
+
+Was damit **nicht** geht: die App auf ein echtes iPhone bringen. Dafür braucht
+es Signierung mit einem Apple-Developer-Zertifikat. Ohne eigenen Mac sind die
+realistischen Wege ein gemieteter Mac in der Cloud (MacStadium, Scaleway,
+AWS EC2 Mac — stundenweise) oder ein Fastlane-Setup mit App-Store-Connect-
+API-Key, das aus derselben CI heraus nach TestFlight lädt.
+
+## Mit Mac
+
+1. `open Dosia.xcodeproj`
+   Falls das Projekt nicht sauber öffnet, liegt eine XcodeGen-Spec bei:
    ```
    brew install xcodegen && xcodegen
    ```
    Beide Wege erzeugen dasselbe Projekt.
 
-2. **Signing & Capabilities** für das Target `MediApp`:
+2. **Signing & Capabilities** für das Target `Dosia`:
    - *Team* auswählen (ein **kostenpflichtiges Apple Developer Programm ist
      Pflicht** — CloudKit und Push gibt es im kostenlosen Account nicht).
-   - *Bundle Identifier* setzen. Voreingestellt ist `es.reichenbach.MediApp`.
-   - **iCloud** → *CloudKit*, Container `iCloud.es.reichenbach.MediApp` anlegen
+   - *Bundle Identifier* setzen. Voreingestellt ist `es.reichenbach.Dosia`.
+   - **iCloud** → *CloudKit*, Container `iCloud.es.reichenbach.Dosia` anlegen
      oder anpassen. Wenn du einen anderen Namen nimmst, ändere ihn an beiden
      Stellen:
-     - `Config/MediApp.entitlements`
+     - `Config/Dosia.entitlements`
      - `PersistenceController.cloudKitContainerIdentifier`
    - **Push Notifications** aktivieren.
    - **Background Modes** → *Remote notifications*.
@@ -54,9 +77,21 @@ Gabe**.
 3. `⌘U` — die Tests müssen grün sein.
 4. `⌘R` auf einem Simulator oder Gerät, das in iCloud angemeldet ist.
 
+## Icon
+
+Ein Tropfen — die Gabe — mit einem Haken darin: eine Dosis, einmal bestätigt.
+Die drei Varianten in `Dosia/Resources/Assets.xcassets/AppIcon.appiconset/`
+(hell, dunkel, getönt) sind gerenderte 1024×1024-PNGs ohne Alphakanal, wie der
+App Store es verlangt. Erzeugt werden sie von `Tools/make_icon.py`; wer Form
+oder Farbe ändern will, passt das Skript an und lässt es neu laufen:
+
+```
+pip install Pillow && python3 Tools/make_icon.py
+```
+
 ## Tests
 
-`MediAppTests` deckt die Terminlogik ab und braucht weder iCloud noch ein Gerät:
+`DosiaTests` deckt die Terminlogik ab und braucht weder iCloud noch ein Gerät:
 
 - `ScheduleEngineTests` — Wiederholungsmuster, Behandlungszeiträume,
   überlappende Regeln, Zeitzonen und die Sommerzeit-Umstellung (eine Gabe um
@@ -68,7 +103,7 @@ Gabe**.
 ## Wie es gebaut ist
 
 ```
-MediApp/
+Dosia/
   Model/          Core-Data-Modell, Persistenz, Sharing, ScheduleEngine
   Features/       Heute · Medikamente · Ereignisse · Teilen · Einstellungen
   Notifications/  Planung und Aktionen der Erinnerungen

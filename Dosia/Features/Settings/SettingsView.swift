@@ -58,7 +58,7 @@ struct SettingsView: View {
                         .disabled(!remindersEnabled)
 
                     if authorizationStatus == .denied {
-                        Label("Notifications are switched off for MediApp in iOS Settings.", systemImage: "bell.slash")
+                        Label("Notifications are switched off for Dosia in iOS Settings.", systemImage: "bell.slash")
                             .font(.footnote)
                             .foregroundStyle(.orange)
                     }
@@ -74,7 +74,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Text("MediApp helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.")
+                    Text("Dosia helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 } header: {

@@ -1,5 +1,5 @@
 import XCTest
-@testable import MediApp
+@testable import Dosia
 
 /// The scheduling rules are the part of the app that must not be wrong, and the
 /// part that needs neither iCloud nor a device to verify.

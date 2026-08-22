@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct MediAppApp: App {
+struct DosiaApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     private let persistence = PersistenceController.shared

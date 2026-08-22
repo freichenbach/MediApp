@@ -1,5 +1,5 @@
 import XCTest
-@testable import MediApp
+@testable import Dosia
 
 /// Matching logged doses back onto planned slots. This is where a double dose
 /// either gets caught or slips through, so it gets its own suite.
