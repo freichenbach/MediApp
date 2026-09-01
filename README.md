@@ -92,17 +92,25 @@ auf dem iPad:
 | App-Datensatz | App Store Connect → Apps → **+** | Name `DosiCrew`, Untertitel `Medikamente gemeinsam im Blick` |
 | API-Schlüssel | App Store Connect → Users & Access → Integrations | Rolle **App Manager**; die `.p8` ist nur einmal ladbar |
 
-Dann vier Secrets unter *Settings → Secrets and variables → Actions*:
+Dann die Secrets unter *Settings → Secrets and variables → Actions* →
+**New repository secret** (nicht *Environment secrets*, nicht *Variables*):
 
 | Secret | Inhalt |
 |---|---|
 | `APPLE_TEAM_ID` | die zehnstellige Team-ID |
 | `ASC_KEY_ID` | Key-ID des API-Schlüssels |
-| `ASC_ISSUER_ID` | Issuer-ID |
-| `ASC_KEY_P8_BASE64` | Inhalt der `.p8`, base64-kodiert |
+| `ASC_ISSUER_ID` | Issuer-ID, gilt fürs ganze Team |
+| `ASC_KEY_P8` | Inhalt der `.p8`-Datei, mitsamt der BEGIN- und END-Zeilen |
 
-Fehlt eines davon, bricht der Workflow gleich im ersten Schritt mit einer
-klaren Meldung ab, statt später beim Signieren.
+Für den Schlüssel gibt es zwei Wege, einer genügt: `ASC_KEY_P8` mit dem rohen
+Dateiinhalt — GitHub-Secrets nehmen mehrzeilige Werte — oder
+`ASC_KEY_P8_BASE64` mit derselben Datei base64-kodiert. Ohne Mac ist Einfügen
+einfacher als Kodieren; sind beide gesetzt, gewinnt `ASC_KEY_P8`.
+
+Fehlt etwas, bricht der Workflow im ersten Schritt mit einer klaren Meldung ab
+statt später beim Signieren. Direkt danach prüft er, ob die abgelegte Datei
+wirklich mit `-----BEGIN PRIVATE KEY-----` beginnt — das fängt einen halb
+kopierten Text oder einen Wert im falschen Secret sofort ab.
 
 ### CloudKit-Schema anlegen
 

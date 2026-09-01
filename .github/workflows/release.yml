@@ -33,10 +33,11 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
         run: |
           missing=""
-          for name in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_BASE64; do
+          for name in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID; do
             # Plain `if`, not `[ ... ] && ...`: the runner uses `bash -e`, where
             # an AND-list returning 1 aborts the step — which would happen here
             # precisely when the secret *is* set.
@@ -50,7 +51,14 @@ jobs:
             echo "See the 'Auf das iPhone' section of README.md for where each value comes from."
             exit 1
           fi
-          echo "All four signing secrets are set."
+          # The private key may arrive either way: pasted straight out of the
+          # .p8 file, or base64 encoded. Encoding it is awkward without a Mac,
+          # so neither form is required — one of them is.
+          if [ -z "$ASC_KEY_P8" ] && [ -z "$ASC_KEY_P8_BASE64" ]; then
+            echo "::error::The private key is missing. Set either ASC_KEY_P8 (the contents of the .p8 file, including the BEGIN and END lines) or ASC_KEY_P8_BASE64 (the same file, base64 encoded). One of the two is enough."
+            exit 1
+          fi
+          echo "Signing secrets are set."
 
       - name: Select the newest installed Xcode
         run: |
@@ -61,14 +69,34 @@ jobs:
       - name: Install the App Store Connect API key
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
         run: |
           # Both xcodebuild and altool read the key from this directory.
           KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          KEY_FILE="$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
           mkdir -p "$KEY_DIR"
-          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
-          chmod 600 "$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
-          echo "ASC_KEY_PATH=$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
+
+          if [ -n "$ASC_KEY_P8" ]; then
+            printf '%s\n' "$ASC_KEY_P8" > "$KEY_FILE"
+            echo "Using ASC_KEY_P8 (raw key contents)."
+          else
+            printf '%s' "$ASC_KEY_P8_BASE64" | base64 --decode > "$KEY_FILE"
+            echo "Using ASC_KEY_P8_BASE64 (decoded)."
+          fi
+          chmod 600 "$KEY_FILE"
+
+          # Catch a half-copied paste, a value in the wrong secret, or an
+          # encoding that ate the line breaks — all of which would otherwise
+          # only surface later as an opaque signing error. Only the verdict is
+          # printed; the key itself never reaches the log.
+          if ! head -n 1 "$KEY_FILE" | grep -q -- "-----BEGIN PRIVATE KEY-----"; then
+            echo "::error::The installed key does not start with '-----BEGIN PRIVATE KEY-----'. Check that ASC_KEY_P8 holds the complete contents of the .p8 file (BEGIN and END lines included), or that ASC_KEY_P8_BASE64 is the base64 of that file."
+            exit 1
+          fi
+          echo "Private key looks well formed."
+
+          echo "ASC_KEY_PATH=$KEY_FILE" >> "$GITHUB_ENV"
 
       - name: Check that the key actually works
         env:
