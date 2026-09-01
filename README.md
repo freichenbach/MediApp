@@ -90,7 +90,19 @@ auf dem iPad:
 | App ID | developer.apple.com → Identifiers | `es.reichenbach.DosiCrew`, mit **iCloud** und **Push Notifications** |
 | CloudKit-Container | ebenda, beim iCloud-Häkchen | `iCloud.es.reichenbach.DosiCrew` |
 | App-Datensatz | App Store Connect → Apps → **+** | Name `DosiCrew`, Untertitel `Medikamente gemeinsam im Blick` |
-| API-Schlüssel | App Store Connect → Users & Access → Integrations | Rolle **App Manager**; die `.p8` ist nur einmal ladbar |
+| API-Schlüssel | App Store Connect → Users and Access → Integrations | **Team Key** mit Rolle **Admin**; die `.p8` ist nur einmal ladbar |
+
+Zur Rolle: **`Admin` ist Pflicht, `App Manager` reicht nicht.** App Manager darf
+Provisioning-Profile anlegen, aber keine Distributions-Zertifikate — und genau
+die erzeugt `xcodebuild`, wenn es den Export signiert. Mit einer schwächeren
+Rolle bricht der Export mit `Cloud signing permission error` ab, gefolgt von
+einem irreführenden `No profiles … were found`, das einen in die falsche
+Richtung schickt. Der Workflow fängt den Fall ab und nennt die Ursache beim
+Namen.
+
+Ein bereits erzeugter Schlüssel lässt sich in der Rolle nicht ändern: einen
+neuen Team Key mit `Admin` anlegen und `ASC_KEY_ID`, `ASC_ISSUER_ID` und
+`ASC_KEY_P8` aktualisieren. Den alten danach widerrufen.
 
 Dann die Secrets unter *Settings → Secrets and variables → Actions* →
 **New repository secret** (nicht *Environment secrets*, nicht *Variables*):

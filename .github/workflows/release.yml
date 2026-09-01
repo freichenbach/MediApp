@@ -155,6 +155,7 @@ jobs:
           # This is where signing happens: -allowProvisioningUpdates creates
           # the App Store distribution profile and certificate, neither of
           # which needs a registered device.
+          set +e
           xcodebuild -exportArchive \
             -archivePath build/DosiCrew.xcarchive \
             -exportOptionsPlist build/ExportOptions.plist \
@@ -162,7 +163,20 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" 2>&1 | tee export.log
+          status=${PIPESTATUS[0]}
+          set -e
+
+          # This one is worth naming outright: the message says nothing about
+          # roles, and the obvious reading — "the profile is missing" — sends
+          # you looking in the wrong place.
+          if grep -q "Cloud signing permission error" export.log; then
+            echo "::error::The App Store Connect key may not create distribution certificates. Cloud signing needs a key with the *Admin* role; App Manager is not enough. Create a new Team Key with Admin access and update ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8."
+            exit 1
+          fi
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
           ls -lh build/export
 
       - name: Upload to TestFlight
