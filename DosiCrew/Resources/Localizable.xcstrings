@@ -990,6 +990,29 @@
         }
       }
     },
+    "Fever in the morning": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fieber am Morgen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fever in the morning"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiebre por la mañana"
+          }
+        }
+      }
+    },
     "First day": {
       "extractionState": "manual",
       "localizations": {
@@ -3700,6 +3723,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Para quién es el plan"
+          }
+        }
+      }
+    },
+    "With a meal": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Essen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With a meal"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con la comida"
           }
         }
       }

@@ -129,6 +129,27 @@ ein Gerät mit iCloud-Anmeldung; ein stundenweise gemieteter Cloud-Mac
 Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
 Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
 
+### Screenshots
+
+`.github/workflows/screenshots.yml` startet die App im CI-Simulator, klickt sie
+durch und legt die Bilder unter `Screenshots/` im Repo ab. Nur manuell
+auslösbar, weil die UI-Tests Minuten brauchen.
+
+Das ist nicht Kosmetik, sondern die einzige Möglichkeit, die App überhaupt zu
+*sehen*, solange kein Mac und kein signierter Build auf einem Gerät da ist. Der
+Test startet mit `-DosiCrewUITestSeed`; die App nutzt dann einen
+In-Memory-Store mit einem Demoplan — inklusive einer absichtlich doppelt
+gegebenen Dosis, damit die Warnung auf einem Bild landet.
+
+Zwei Startargumente halten Dialoge von den Bildern fern: `-personName Papa`
+beantwortet die Frage nach dem Gerätenamen (iOS übernimmt
+`-key value`-Argumente in `UserDefaults`), und der Erlaubnisdialog für
+Mitteilungen wird unter UI-Tests übersprungen.
+
+Die Unit-Tests und die UI-Tests haben **getrennte Schemata**: `DosiCrew` für
+die 35 schnellen Tests bei jedem Push, `DosiCrewScreenshots` für die langsamen
+UI-Tests auf Abruf.
+
 ### Läuft die Synchronisation überhaupt?
 
 Bis das Schema in Produktion liegt, baut und startet die App, synchronisiert
@@ -185,6 +206,9 @@ brauchen. Sie laufen bei jedem Push auf dem macOS-Runner mit:
   Erinnerungen.
 - `DoseMatchingTests` (16) — Zuordnung von Gaben zu geplanten Slots, Erkennung
   der Doppelgabe, Extra-Gaben, tagesübergreifende Gaben, Überfälligkeit.
+
+Dazu `DosiCrewUITests` — kein Teil der schnellen Suite, sondern der
+Screenshot-Lauf (siehe oben).
 
 ## Wie es gebaut ist
 

@@ -36,6 +36,13 @@ final class PersistenceController {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
     }
 
+    /// Set by the screenshot UI tests. The app then runs on an in-memory store
+    /// filled with the demo plan, so the pictures show something to look at and
+    /// never touch anybody's real data.
+    static var isRunningUITests: Bool {
+        ProcessInfo.processInfo.arguments.contains("-DosiCrewUITestSeed")
+    }
+
     var viewContext: NSManagedObjectContext { container.viewContext }
 
     /// Reports whether mirroring is actually exchanging anything, so the UI can
@@ -45,7 +52,7 @@ final class PersistenceController {
     // MARK: - Init
 
     init(inMemory: Bool = false) {
-        let useInMemoryStore = inMemory || Self.isRunningUnitTests
+        let useInMemoryStore = inMemory || Self.isRunningUnitTests || Self.isRunningUITests
         container = NSPersistentCloudKitContainer(name: "DosiCrew")
 
         if useInMemoryStore {
@@ -92,6 +99,11 @@ final class PersistenceController {
         container.viewContext.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
         container.viewContext.transactionAuthor = "app"
         container.viewContext.name = "viewContext"
+
+        if Self.isRunningUITests && !inMemory {
+            Self.seedDemoData(into: container.viewContext)
+            save(container.viewContext)
+        }
 
         if !useInMemoryStore {
             do {
@@ -276,11 +288,13 @@ final class PersistenceController {
 
 extension PersistenceController {
 
-    /// In-memory stack with a small, deterministic plan — used by SwiftUI
-    /// previews so they never touch iCloud.
-    static let preview: PersistenceController = {
-        let controller = PersistenceController(inMemory: true)
-        let context = controller.viewContext
+    /// A small, deterministic plan: one child, two medications, one dose
+    /// already given — and one dose given twice, so the duplicate warning is
+    /// visible wherever this data is shown.
+    ///
+    /// Shared by the SwiftUI previews and by the screenshot UI tests, so the
+    /// pictures and the previews cannot drift apart.
+    static func seedDemoData(into context: NSManagedObjectContext) {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
@@ -294,7 +308,7 @@ extension PersistenceController {
         antibiotic.doseAmount = 5
         antibiotic.doseUnit = "ml"
         antibiotic.strengthText = "250 mg / 5 ml"
-        antibiotic.instructions = "With a meal"
+        antibiotic.instructions = String(localized: "With a meal")
         antibiotic.colorHex = MedColor.teal.rawValue
         antibiotic.startDate = today
         antibiotic.endDate = calendar.date(byAdding: .day, value: 6, to: today)
@@ -310,6 +324,7 @@ extension PersistenceController {
         let vitaminRule = ScheduleRule.make(in: context, medication: vitamin)
         vitaminRule.minutes = [9 * 60]
 
+        // The morning dose, given once by one parent …
         if let morning = calendar.date(bySettingHour: 8, minute: 0, second: 0, of: today) {
             DoseLog.make(
                 in: context,
@@ -321,15 +336,43 @@ extension PersistenceController {
             )
         }
 
+        // … and the midday dose given by both, minutes apart. This is the
+        // failure the app exists to catch, so it belongs in every preview and
+        // on every screenshot.
+        if let midday = calendar.date(bySettingHour: 14, minute: 0, second: 0, of: today) {
+            DoseLog.make(
+                in: context,
+                medication: antibiotic,
+                scheduledAt: midday,
+                status: .given,
+                personName: "Mama",
+                takenAt: midday.addingTimeInterval(2 * 60)
+            )
+            DoseLog.make(
+                in: context,
+                medication: antibiotic,
+                scheduledAt: midday,
+                status: .given,
+                personName: "Oma",
+                takenAt: midday.addingTimeInterval(9 * 60)
+            )
+        }
+
         let fever = CareEvent.make(in: context, patient: patient)
         fever.categoryEnum = .fever
-        fever.title = "Fever in the morning"
+        fever.title = String(localized: "Fever in the morning")
         fever.hasMeasurement = true
         fever.measurementValue = 38.9
         fever.measurementUnit = "°C"
         fever.personName = "Mama"
+    }
 
-        controller.save(context)
+    /// In-memory stack with the demo plan — used by SwiftUI previews so they
+    /// never touch iCloud.
+    static let preview: PersistenceController = {
+        let controller = PersistenceController(inMemory: true)
+        seedDemoData(into: controller.viewContext)
+        controller.save(controller.viewContext)
         return controller
     }()
 }

@@ -21,6 +21,8 @@ targets:
     sources:
       - path: DosiCrew
     settings:
+      # Only the app carries entitlements, and the APS environment differs per
+      # configuration: App Store builds must declare `production`.
       configs:
         Debug:
           CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.entitlements
@@ -44,16 +46,26 @@ targets:
     dependencies:
       - target: DosiCrew
     settings:
-      configs:
-        Debug:
-          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.entitlements
-        Release:
-          CODE_SIGN_ENTITLEMENTS: Config/DosiCrew.Release.entitlements
       base:
         PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.DosiCrewTests
         GENERATE_INFOPLIST_FILE: YES
 
+  DosiCrewUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: DosiCrewUITests
+    dependencies:
+      - target: DosiCrew
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: es.reichenbach.DosiCrewUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: DosiCrew
+
 schemes:
+  # Two schemes on purpose. The fast one runs on every push; the UI tests take
+  # minutes and only run when screenshots are wanted.
   DosiCrew:
     build:
       targets:
@@ -64,3 +76,14 @@ schemes:
       config: Debug
       targets:
         - DosiCrewTests
+
+  DosiCrewScreenshots:
+    build:
+      targets:
+        DosiCrew: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DosiCrewUITests

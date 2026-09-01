@@ -63,6 +63,10 @@ actor NotificationScheduler {
     /// Rebuilds the whole pending set. Cheap enough to call on every change, and
     /// far safer than trying to patch individual requests.
     func reschedule() async {
+        // The screenshot run must not be interrupted by the system's
+        // notification permission alert.
+        guard !PersistenceController.isRunningUITests else { return }
+
         guard AppSettings.remindersEnabled else {
             center.removeAllPendingNotificationRequests()
             return

@@ -70,6 +70,19 @@ jobs:
           chmod 600 "$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8"
           echo "ASC_KEY_PATH=$KEY_DIR/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_ENV"
 
+      - name: Check that the key actually works
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          # Seconds instead of the five minutes an archive takes: if key,
+          # issuer and team do not belong together, fail here rather than at
+          # the signing step with a message that looks like something else.
+          if ! xcrun altool --list-apps --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"; then
+            echo "::error::The App Store Connect key was rejected. Check ASC_KEY_ID, ASC_ISSUER_ID and that the key has the App Manager role."
+            exit 1
+          fi
+
       - name: Prepare export options
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}

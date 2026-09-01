@@ -1,0 +1,100 @@
+name: Screenshots
+
+# Manual only: the UI tests take minutes, and screenshots are wanted after a
+# visual change, not on every push.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: screenshots
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    name: Capture
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # A token that can push the captured images back to the branch.
+          persist-credentials: true
+
+      - name: Select the newest installed Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
+      - name: Pick an available iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json | python3 .github/scripts/pick_simulator.py)
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      - name: Run the screenshot UI tests
+        run: |
+          set -o pipefail
+          rm -rf Screenshots.xcresult
+          xcodebuild test \
+            -project DosiCrew.xcodeproj \
+            -scheme DosiCrewScreenshots \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath Screenshots.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS=""
+
+      - name: Export the screenshots from the result bundle
+        if: always()
+        run: |
+          set -o pipefail
+          rm -rf Screenshots
+          mkdir -p Screenshots
+          # Xcode 16 replaced the old xcresulttool JSON walk with a direct
+          # attachment export. Keep the legacy path as a fallback so a runner
+          # image change does not silently produce no pictures.
+          if xcrun xcresulttool export attachments \
+               --path Screenshots.xcresult \
+               --output-path Screenshots 2>/dev/null; then
+            echo "Exported via 'xcresulttool export attachments'."
+          else
+            echo "::warning::'export attachments' failed, falling back to the legacy graph walk."
+            python3 .github/scripts/export_attachments.py Screenshots.xcresult Screenshots
+          fi
+
+          # The exporter names files by attachment id; rename to the test's own
+          # names using the manifest it writes alongside them.
+          python3 .github/scripts/rename_screenshots.py Screenshots
+          ls -la Screenshots
+
+      - name: Commit the screenshots
+        if: always()
+        run: |
+          if [ -z "$(ls -A Screenshots 2>/dev/null)" ]; then
+            echo "::error::No screenshots were produced."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A Screenshots
+          if git diff --cached --quiet; then
+            echo "Screenshots unchanged."
+            exit 0
+          fi
+          # [skip ci] keeps this push from starting another build.
+          git commit -m "Screenshots aus dem Simulator aktualisieren [skip ci]"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Keep the result bundle on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ScreenshotResults
+          path: Screenshots.xcresult
+          retention-days: 7
+          if-no-files-found: ignore
