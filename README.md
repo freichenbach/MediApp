@@ -71,13 +71,23 @@ Was der Workflow bewusst tut:
 ## Auf das iPhone
 
 `.github/workflows/release.yml` archiviert, signiert und lädt nach TestFlight —
-ebenfalls auf dem macOS-Runner. Er läuft **nicht** bei jedem Push, sondern nur
+ebenfalls auf dem macOS-Runner. Der Weg ist erprobt: Build 4 ging am
+2026-09-01 mit `UPLOAD SUCCEEDED with no errors` durch. Er läuft **nicht** bei jedem Push, sondern nur
 von Hand oder bei einem Tag `v*`: jede Nummer ist in TestFlight nur einmal
 verwendbar, und macOS-Minuten zählen zehnfach.
 
 Signiert wird über `xcodebuild -allowProvisioningUpdates` mit einem
 App-Store-Connect-API-Schlüssel. Xcode legt Zertifikat und Profil selbst an;
 damit entfallen Fastlane `match` und ein eigenes Zertifikats-Repository.
+
+Zwei Eigenheiten, die den Weg dorthin gekostet haben und deshalb hier stehen:
+
+- **Das Archiv entsteht unsigniert** (`CODE_SIGNING_ALLOWED=NO`). Signiert man
+  es mit, greift Xcode zu einem *Development*-Profil, und die verlangen
+  mindestens ein registriertes Gerät. Ein frisches Team hat keins, und
+  TestFlight braucht auch keins — dort zählt das Distribution-Profil, das im
+  Export-Schritt entsteht.
+- **Der API-Schlüssel braucht `Admin`.** Siehe unten.
 
 ### Einmalig einrichten
 
