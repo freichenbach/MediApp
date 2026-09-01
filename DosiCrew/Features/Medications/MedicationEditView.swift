@@ -105,7 +105,10 @@ struct MedicationEditView: View {
                     }
                 }
             }
-            .navigationTitle(isNew ? Text("New medication") : Text("Edit medication"))
+            // The medication's own name instead of a static label: with
+            // "Abbrechen" and "Sichern" beside it, "Medikament bearbeiten"
+            // truncates to "Medikament bea…".
+            .navigationTitle(isNew ? Text("New medication") : Text(trimmedName.isEmpty ? medication.displayName : trimmedName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

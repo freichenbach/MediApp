@@ -23,6 +23,20 @@ def sanitize(name: str) -> str:
     return name or "screenshot"
 
 
+EXPORT_SUFFIX = re.compile(r"_\d+_[0-9A-Fa-f-]{36}(?=\.png$)")
+
+
+def strip_export_suffix(name: str) -> str | None:
+    """`01-Heute_0_E7FD6CDA-….png` -> `01-Heute.png`.
+
+    The modern exporter already puts the attachment's name in the file name and
+    appends an index and a uuid. Without this the repository fills up with
+    unreadable names even though the information is right there.
+    """
+    stripped = EXPORT_SUFFIX.sub("", name)
+    return stripped if stripped != name else None
+
+
 def collect_renames(node, out):
     """Walks any JSON shape looking for {exported file name, readable name}."""
     if isinstance(node, dict):
@@ -86,7 +100,7 @@ def main() -> int:
         if not name.lower().endswith(".png"):
             os.remove(path)          # manifests and non-image attachments
             continue
-        readable = renames.get(name)
+        readable = renames.get(name) or strip_export_suffix(name)
         if readable:
             new_name = sanitize(readable)
             if not new_name.lower().endswith(".png"):

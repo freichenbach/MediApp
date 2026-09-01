@@ -158,7 +158,7 @@ enum ScheduleSummary {
         let formatted = ScheduleEngine.normalizedMinutes(minutes).compactMap { minute -> String? in
             guard let date = calendar.date(bySettingHour: minute / 60, minute: minute % 60, second: 0, of: today)
             else { return nil }
-            return date.formatted(date: .omitted, time: .shortened)
+            return TimeText.of(date)
         }
         return formatted.joined(separator: ", ")
     }

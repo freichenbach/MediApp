@@ -106,7 +106,7 @@ struct SettingsView: View {
             warning("Syncing is failing, so the others may not be seeing your ticks. \(error)")
         } else if let lastSuccess = sync.lastSuccess {
             Label {
-                Text("Last synced \(lastSuccess.formatted(date: .omitted, time: .shortened))")
+                Text("Last synced \(TimeText.of(lastSuccess))")
             } icon: {
                 Image(systemName: "checkmark.icloud")
             }

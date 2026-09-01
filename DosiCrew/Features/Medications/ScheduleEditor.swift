@@ -185,7 +185,7 @@ struct ScheduleRuleEditor: View {
         let base = calendar.startOfDay(for: Date())
         guard let date = calendar.date(bySettingHour: minute / 60, minute: minute % 60, second: 0, of: base)
         else { return "\(minute / 60):\(minute % 60)" }
-        return date.formatted(date: .omitted, time: .shortened)
+        return TimeText.of(date)
     }
 
     private func addTime() {

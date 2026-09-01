@@ -119,7 +119,7 @@ struct EventRow: View {
     }
 
     private var subtitle: String {
-        let time = (event.timestamp ?? Date()).formatted(date: .omitted, time: .shortened)
+        let time = TimeText.of(event.timestamp ?? Date())
         let name = event.personName?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let name, !name.isEmpty else { return time }
         return String(localized: "\(time) · logged by \(name)")

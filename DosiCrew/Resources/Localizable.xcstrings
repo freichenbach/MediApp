@@ -743,7 +743,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abend"
+            "value": "Abends"
           }
         },
         "en": {
@@ -1640,7 +1640,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mittag"
+            "value": "Mittags"
           }
         },
         "en": {
@@ -1663,7 +1663,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Morgen"
+            "value": "Morgens"
           }
         },
         "en": {
@@ -1801,7 +1801,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nacht"
+            "value": "Nachts"
           }
         },
         "en": {

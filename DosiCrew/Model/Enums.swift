@@ -221,6 +221,19 @@ enum DayPart: Int, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Time formatting
+
+/// One time format across the whole app.
+///
+/// `.shortened` renders 08:00 as "8:00" in German while the schedule rows use
+/// `.dateTime.hour().minute()` and render "08:00". Two formats side by side on
+/// the same screen read as a bug, so everything goes through here.
+enum TimeText {
+    static func of(_ date: Date) -> String {
+        date.formatted(.dateTime.hour().minute())
+    }
+}
+
 // MARK: - Colors
 
 /// Fixed palette so a colour picked on one device renders identically on another.

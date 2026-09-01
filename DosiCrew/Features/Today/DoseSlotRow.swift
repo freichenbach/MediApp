@@ -147,7 +147,7 @@ struct DoseSlotRow: View {
                 let name = log.personName?.trimmingCharacters(in: .whitespacesAndNewlines)
                 let who = (name?.isEmpty == false ? name! : String(localized: "Someone"))
                 guard let takenAt = log.takenAt else { return who }
-                return "\(who) (\(takenAt.formatted(date: .omitted, time: .shortened)))"
+                return "\(who) (\(TimeText.of(takenAt)))"
             }
             .joined(separator: ", ")
     }
@@ -155,7 +155,7 @@ struct DoseSlotRow: View {
     private func completionText(for log: DoseLogSnapshot) -> String {
         let name = log.personName?.trimmingCharacters(in: .whitespacesAndNewlines)
         let who = (name?.isEmpty == false ? name! : String(localized: "Someone"))
-        let time = (log.takenAt ?? slot.scheduledAt).formatted(date: .omitted, time: .shortened)
+        let time = TimeText.of(log.takenAt ?? slot.scheduledAt)
         switch log.status {
         case .given: return String(localized: "Given by \(who) at \(time)")
         case .skipped: return String(localized: "Skipped by \(who) at \(time)")
@@ -215,6 +215,6 @@ struct ExtraDoseRow: View {
         let name = extra.log.personName?.trimmingCharacters(in: .whitespacesAndNewlines)
         let who = (name?.isEmpty == false ? name! : String(localized: "Someone"))
         guard let takenAt = extra.log.takenAt else { return who }
-        return String(localized: "Given by \(who) at \(takenAt.formatted(date: .omitted, time: .shortened))")
+        return String(localized: "Given by \(who) at \(TimeText.of(takenAt))")
     }
 }
