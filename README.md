@@ -136,11 +136,23 @@ kopierten Text oder einen Wert im falschen Secret sofort ab.
 
 ### CloudKit-Schema anlegen
 
-Der eine Schritt, der sich nicht automatisieren lässt. **TestFlight-Builds
+Der eine Schritt, der einen Mac braucht — und zwar einen, auf dem **Xcode 16
+oder neuer** läuft, also mindestens macOS Sonoma 14.5. Ältere Macs helfen
+nicht: das Projekt braucht das iOS-17-SDK, und das gibt es erst ab Xcode 15,
+das Ordnerformat erst ab 16. **TestFlight-Builds
 laufen immer gegen die Produktionsumgebung von CloudKit, und das Schema muss
 dort liegen, bevor der erste Build hochgeht** — erzeugt wird es aber nur von
 einem Lauf in der *Development*-Umgebung. Das braucht einmalig einen Mac; ein
 stundenweise gemieteter Cloud-Mac (MacStadium, Scaleway, MacinCloud) reicht.
+
+**Der kurze Weg:** `./Tools/bootstrap-cloudkit.sh <APPLE_TEAM_ID>` erledigt
+Bauen, Installieren und Starten mit dem richtigen Argument und zeigt das
+Ergebnis direkt im Terminal. Von Hand bleiben nur die zwei Schritte, die
+wirklich einen Menschen brauchen: die iCloud-Anmeldung im Simulator und das
+Deployen in der CloudKit Console. Über eine Remote-Desktop-Verbindung spart
+das eine Menge Klickerei.
+
+**Von Hand, falls das Skript hakt:**
 
 1. Repo klonen, `DosiCrew.xcodeproj` öffnen, Team unter *Signing & Capabilities*
    wählen.
