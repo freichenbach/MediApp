@@ -139,22 +139,31 @@ kopierten Text oder einen Wert im falschen Secret sofort ab.
 Der eine Schritt, der sich nicht automatisieren lässt. **TestFlight-Builds
 laufen immer gegen die Produktionsumgebung von CloudKit, und das Schema muss
 dort liegen, bevor der erste Build hochgeht** — erzeugt wird es aber nur von
-einem Lauf in der *Development*-Umgebung. Das braucht einmalig einen Mac oder
-ein Gerät mit iCloud-Anmeldung; ein stundenweise gemieteter Cloud-Mac
-(MacStadium, Scaleway, MacinCloud) reicht dafür.
+einem Lauf in der *Development*-Umgebung. Das braucht einmalig einen Mac; ein
+stundenweise gemieteter Cloud-Mac (MacStadium, Scaleway, MacinCloud) reicht.
 
 1. Repo klonen, `DosiCrew.xcodeproj` öffnen, Team unter *Signing & Capabilities*
    wählen.
-2. Am Mac in iCloud anmelden.
+2. **Das iPhone anschließen** und als Ziel wählen. Xcode registriert das Gerät
+   dabei selbst im Developer-Portal. Bequemer als der Simulator, weil das
+   iPhone ohnehin in iCloud angemeldet ist — und `initializeCloudKitSchema`
+   braucht ein angemeldetes Konto. (Simulator geht auch, dort aber erst unter
+   *Einstellungen* in iCloud anmelden.)
 3. *Product → Scheme → Edit Scheme → Run → Arguments*: Startargument
    `-DosiCrewInitializeCloudKitSchema` hinzufügen.
-4. Einmal im Simulator starten. In der Konsole muss stehen:
-   *„CloudKit development schema initialized"*.
-5. Startargument wieder entfernen — es ist ohnehin `#if DEBUG`-geschützt und
-   kann nie in einen Release-Build geraten, kostet sonst aber bei jedem Start
-   Zeit.
-6. `icloud.developer.apple.com` → CloudKit Console → Schema prüfen →
-   **Deploy Schema Changes** nach Production.
+4. Einmal starten. Der Start dauert spürbar länger — das Anlegen des Schemas
+   blockiert. In der Xcode-Konsole erscheint ein umrahmter Block mit
+   *„CloudKit development schema initialized"* und dem Container-Namen.
+5. Startargument wieder entfernen. Es ist zwar `#if DEBUG`-geschützt und kann
+   nie in einen Release-Build geraten, kostet aber bei jedem Start Zeit.
+6. `icloud.developer.apple.com` → CloudKit Console → Container auswählen →
+   Schema prüfen → **Deploy Schema Changes** nach Production.
+
+**Der bereits installierte TestFlight-Build fängt danach von selbst an zu
+synchronisieren.** Das Schema liegt auf dem Server, nicht in der App; ein neuer
+Upload ist nicht nötig. In den Einstellungen wechselt die Anzeige unter
+*Teilen* von der Warnung auf einen Zeitpunkt — daran erkennst du, dass es
+wirklich läuft.
 
 Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
 Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
