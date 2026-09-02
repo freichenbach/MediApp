@@ -190,10 +190,27 @@ final class PersistenceController {
     /// See the "CloudKit-Schema anlegen" runbook in README.md.
     private func initializeCloudKitSchemaIfRequested() {
         guard ProcessInfo.processInfo.arguments.contains("-DosiCrewInitializeCloudKitSchema") else { return }
+        // Printed as well as logged: this runs once, by hand, and the person
+        // doing it needs an unambiguous answer in the Xcode console rather
+        // than having to go hunting in the unified log.
         do {
             try container.initializeCloudKitSchema(options: [])
-            Self.logger.notice("CloudKit development schema initialized — deploy it to production in the CloudKit Console")
+            let message = """
+
+                ────────────────────────────────────────────────────────────
+                CloudKit development schema initialized.
+                Container: \(Self.cloudKitContainerIdentifier)
+
+                Next: icloud.developer.apple.com → CloudKit Console → this
+                container → Schema → Deploy Schema Changes → Production.
+                Then remove the -DosiCrewInitializeCloudKitSchema argument.
+                ────────────────────────────────────────────────────────────
+
+                """
+            print(message)
+            Self.logger.notice("CloudKit development schema initialized for \(Self.cloudKitContainerIdentifier)")
         } catch {
+            print("\n!!! Initializing the CloudKit schema FAILED: \(error)\n")
             Self.logger.error("Initializing the CloudKit schema failed: \(error.localizedDescription)")
         }
     }
