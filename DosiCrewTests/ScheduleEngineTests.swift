@@ -348,21 +348,30 @@ final class StoreDescriptionTests: XCTestCase {
     /// everything a test machine cannot have — an iCloud account, entitlements,
     /// a container — and keeps the one step that failed: resolving the
     /// configuration name against the model.
+    ///
+    /// Each store keeps its own URL. In memory the file is never opened, but
+    /// the coordinator still refuses two stores at the same address with
+    /// "Can't add the same store twice" — which says nothing about the
+    /// descriptions and everything about the test.
     func testEveryStoreDescriptionCanActuallyBeAdded() throws {
         let model = PersistenceController(inMemory: true).container.managedObjectModel
         let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
 
         for description in PersistenceController.cloudKitStoreDescriptions() {
+            let url = try XCTUnwrap(description.url, "A store description without a URL")
             XCTAssertNoThrow(
                 try coordinator.addPersistentStore(
                     type: .inMemory,
                     configuration: description.configuration,
-                    at: URL(fileURLWithPath: "/dev/null")
+                    at: url
                 ),
-                "Cannot open \(description.url?.lastPathComponent ?? "?") with configuration "
+                "Cannot open \(url.lastPathComponent) with configuration "
                     + "\(description.configuration ?? "<default>")"
             )
         }
+
+        XCTAssertEqual(coordinator.persistentStores.count, 2,
+                       "Both the private and the shared store have to open")
     }
 
     /// Guards the other direction: if someone does name a configuration later,
