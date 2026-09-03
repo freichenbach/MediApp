@@ -145,6 +145,30 @@ dort liegen, bevor der erste Build hochgeht** — erzeugt wird es aber nur von
 einem Lauf in der *Development*-Umgebung. Das braucht einmalig einen Mac; ein
 stundenweise gemieteter Cloud-Mac (MacStadium, Scaleway, MacinCloud) reicht.
 
+**Xcode aus dem App Store geht meist nicht.** Der App Store bietet immer nur
+die *neueste* Xcode-Version an, und die verlangt regelmäßig ein macOS, das noch
+nicht auf dem Rechner ist — „benötigt macOS 26.2 oder neuer" auf einem Mac mit
+Sequoia 15.3. Das heißt nicht, dass der Mac zu alt ist. Ältere Xcode-Versionen
+liegen als `.xip` unter <https://developer.apple.com/download/all/> (Suchfeld:
+`Xcode`, Anmeldung mit demselben Developer-Account). Jeder Eintrag nennt dort
+sein Mindest-macOS — **diese Angabe zählt**, nicht das, was der App Store sagt.
+Nimm die neueste Version, die der eigene Mac laut dieser Angabe trägt; alles ab
+Xcode 16 reicht für dieses Projekt.
+
+Danach:
+
+```sh
+# .xip doppelklicken, entpacken dauert einige Minuten, dann:
+mv ~/Downloads/Xcode.app /Applications/
+sudo xcode-select -s /Applications/Xcode.app
+xcodebuild -version          # muss 16.x oder höher zeigen
+```
+
+Xcode einmal öffnen, damit es seine Zusatzkomponenten installiert. Platzbedarf
+beim Entpacken: rund 40 GB frei. Alternativ macOS aktualisieren und dann den
+App Store nehmen — geht auch, ist aber der größere Eingriff, besonders auf einem
+geliehenen Rechner.
+
 **Der kurze Weg:** `./Tools/bootstrap-cloudkit.sh <APPLE_TEAM_ID>` erledigt
 Bauen, Installieren und Starten mit dem richtigen Argument und zeigt das
 Ergebnis direkt im Terminal. Von Hand bleiben nur die zwei Schritte, die
