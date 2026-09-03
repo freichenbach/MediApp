@@ -119,18 +119,29 @@ jobs:
           sed "s/__TEAM_ID__/$APPLE_TEAM_ID/" Tools/ExportOptions.plist > build/ExportOptions.plist
           plutil -lint build/ExportOptions.plist
 
-      - name: Archive (unsigned)
+      - name: Archive (signed for distribution)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -o pipefail
-          # Archived without signing on purpose.
+          # Signed here, not only at export — and specifically for
+          # *distribution*.
           #
-          # With automatic signing, xcodebuild signs the archive using an *iOS
-          # App Development* profile — and those require at least one
-          # registered device, which a fresh team does not have and which
-          # TestFlight never needs. The distribution profile is created in the
-          # export step below, where App Store signing actually belongs.
+          # This step used to pass CODE_SIGNING_ALLOWED=NO, to dodge the fact
+          # that automatic signing reaches for an *iOS App Development* profile,
+          # and those need a registered device that a fresh team does not have.
+          # It dodged something else too: without signing, no entitlements are
+          # embedded, and `exportArchive` has none to carry over. It then signs
+          # with the bare minimum the profile brings — application-identifier,
+          # team-identifier, beta-reports-active, get-task-allow — and the app
+          # ships with no iCloud container, no CloudKit and no time-sensitive
+          # notifications. That is what made Build 6 trap on launch.
+          #
+          # Naming Apple Distribution sends automatic signing to the App Store
+          # profile instead of the development one, so the device problem does
+          # not arise and the entitlements are embedded from the start.
           #
           # TestFlight rejects a build number it has already seen, so it comes
           # from the run counter rather than the checked-in value.
@@ -140,11 +151,30 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath build/DosiCrew.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="Apple Distribution"
+
+      - name: Check the archive carries its entitlements
+        run: |
+          # Checked here as well as after the export, because these two steps
+          # fail for different reasons and the distinction is the whole
+          # diagnosis: missing here means the archive never had them; missing
+          # only after the export means the profile dropped them.
+          APP=$(find build/DosiCrew.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
+          [ -n "$APP" ] || { echo "::error::No .app inside the archive."; exit 1; }
+          codesign -d --entitlements :- "$APP" > archive-entitlements.plist 2>/dev/null || true
+          cat archive-entitlements.plist
+          if ! grep -q "iCloud.es.reichenbach.DosiCrew" archive-entitlements.plist; then
+            echo "::error::The archived app carries no iCloud container entitlement. Signing during the archive step is what embeds them; check CODE_SIGN_IDENTITY and CODE_SIGN_STYLE above."
+            exit 1
+          fi
+          echo "The archive carries its entitlements."
 
       - name: Export and sign the IPA
         env:
