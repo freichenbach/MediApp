@@ -111,6 +111,45 @@ jobs:
             exit 1
           fi
 
+      - name: Give the runner a keychain to put the certificate in
+        run: |
+          # Run 12 got as far as a perfect App Store profile and then:
+          #
+          #   0 valid identities found
+          #
+          # Cloud signing had just created a distribution certificate, and it
+          # was nowhere to be found. A macOS runner starts with no unlocked
+          # default keychain of its own, so there is no obvious place for a new
+          # certificate to land and stay readable — and `security find-identity`
+          # only searches the user keychain list.
+          #
+          # So one is made here, unlocked, and put at the front of that list
+          # before anything asks Apple for a certificate.
+          #
+          # The password is random and dies with the runner. It guards a
+          # keychain that holds one throwaway certificate for the length of one
+          # job; it is not a secret worth managing, but an empty password makes
+          # `security` behave differently, so it gets a real one.
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          PASSWORD=$(uuidgen)
+
+          security create-keychain -p "$PASSWORD" "$KEYCHAIN"
+          # Without this the keychain re-locks after five minutes of idling and
+          # the archive step fails in the middle with a password prompt nobody
+          # can answer.
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
+
+          # First in the search list, and the default — the one a tool writes to
+          # when it is not told otherwise. The existing keychains stay in the
+          # list so nothing else on the runner breaks.
+          EXISTING=$(security list-keychains -d user | sed -e 's/^ *"//' -e 's/"$//')
+          security list-keychains -d user -s "$KEYCHAIN" $EXISTING
+          security default-keychain -s "$KEYCHAIN"
+
+          security list-keychains -d user
+          echo "Keychain ready."
+
       - name: Prepare export options
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -210,12 +249,21 @@ jobs:
           mkdir -p "$DEST"
           cp "$PROFILE" "$DEST/$UUID.mobileprovision"
 
-          # The certificate cloud signing just created. There should be exactly
-          # one; if a run ever finds several, signing with the wrong one fails
-          # loudly at export rather than silently here.
-          security find-identity -v -p codesigning
+          # The certificate cloud signing just created. Everything is printed
+          # before it is judged: run 12 failed on "0 valid identities found"
+          # with no way to tell an empty keychain from an unsearched one.
+          echo "--- keychains searched ---"
+          security list-keychains -d user
+          echo "--- code signing identities ---"
+          security find-identity -v -p codesigning || true
+          echo "--- all identities, valid or not ---"
+          security find-identity -p codesigning || true
+
           IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | sed -E 's/.*"(.*)"/\1/')
-          [ -n "$IDENTITY" ] || { echo "::error::Cloud signing left no Apple Distribution certificate in the keychain."; exit 1; }
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::Cloud signing left no usable Apple Distribution certificate in the keychain, so the archive cannot be signed locally. The listings above show what is there. If the keychain really is empty, cloud signing keeps the private key at Apple and the only remaining route is a registered device, which lets automatic signing produce a signed archive."
+            exit 1
+          fi
           echo "Identity: $IDENTITY"
 
           echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
