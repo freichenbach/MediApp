@@ -19,6 +19,12 @@ struct SettingsView: View {
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
     @State private var timeSensitiveSetting: UNNotificationSetting = .notSupported
     @State private var criticalAlertSetting: UNNotificationSetting = .notSupported
+    /// Nothing about loudness is said before the real values arrive: the
+    /// defaults above would briefly claim the worst case and then correct
+    /// themselves, which reads as a glitch and teaches people to ignore the
+    /// line.
+    @State private var notificationSettingsLoaded = false
+    @State private var askedForCriticalAlerts = false
 
     var body: some View {
         NavigationStack {
@@ -63,7 +69,7 @@ struct SettingsView: View {
                         Label("Notifications are switched off for DosiCrew in iOS Settings.", systemImage: "bell.slash")
                             .font(.footnote)
                             .foregroundStyle(.orange)
-                    } else {
+                    } else if notificationSettingsLoaded {
                         loudnessStatus
                     }
                 } header: {
@@ -139,6 +145,25 @@ struct SettingsView: View {
             Label("Rings even when the iPhone is silenced.", systemImage: "bell.badge.fill")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+        } else if criticalAlertSetting == .notSupported {
+            // For this app `.notSupported` does not mean the iPhone cannot do
+            // it — the entitlement is in the build, and the release run refuses
+            // to upload without it. It means the permission was never granted,
+            // because iOS asks for notification permission exactly once and
+            // DosiCrew could not ring through the mute switch when it asked.
+            // iOS then shows no switch either, so there is nothing to send
+            // anybody to.
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Reminders may ring through the mute switch, but iOS never granted it — it asks only once, and back then DosiCrew was not allowed to.", systemImage: "bell.badge")
+                    .foregroundStyle(.orange)
+                if askedForCriticalAlerts {
+                    Text("iOS did not ask again. Only removing DosiCrew and installing it afresh resets that. The plan itself is in iCloud and comes back; only the name in these settings has to be typed again.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button("Ask iOS again") { askForCriticalAlerts() }
+                }
+            }
+            .font(.footnote)
         } else if criticalAlertSetting == .disabled {
             // The state this app is most likely to be in, and the one that used
             // to be invisible: iOS asks for notification permission exactly
@@ -182,7 +207,23 @@ struct SettingsView: View {
                 authorizationStatus = settings.authorizationStatus
                 timeSensitiveSetting = settings.timeSensitiveSetting
                 criticalAlertSetting = settings.criticalAlertSetting
+                notificationSettingsLoaded = true
             }
+        }
+    }
+
+    /// Worth one tap before telling somebody to reinstall the app.
+    ///
+    /// iOS will almost certainly not ask — permission already granted means no
+    /// prompt, whatever new option is named. But "almost certainly" is not
+    /// certainly, the attempt costs nothing, and the alternative on offer is
+    /// deleting the app. If nothing changes, the line above says so plainly
+    /// rather than leaving the button to be pressed again.
+    private func askForCriticalAlerts() {
+        Task {
+            await NotificationScheduler.shared.requestAuthorization()
+            await MainActor.run { askedForCriticalAlerts = true }
+            load()
         }
     }
 

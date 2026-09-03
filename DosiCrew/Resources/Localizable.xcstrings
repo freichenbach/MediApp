@@ -507,6 +507,29 @@
         }
       }
     },
+    "Ask iOS again": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS erneut fragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask iOS again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a preguntar a iOS"
+          }
+        }
+      }
+    },
     "Asks when the next medication is due.": {
       "extractionState": "manual",
       "localizations": {
@@ -3313,6 +3336,29 @@
         }
       }
     },
+    "Reminders may ring through the mute switch, but iOS never granted it — it asks only once, and back then DosiCrew was not allowed to.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnerungen dürften durch den Stummschalter klingeln, aber iOS hat das nie erlaubt — es fragt nur ein einziges Mal, und damals durfte DosiCrew es noch nicht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders may ring through the mute switch, but iOS never granted it — it asks only once, and back then DosiCrew was not allowed to."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los recordatorios podrían sonar con el iPhone en silencio, pero iOS nunca lo concedió: solo lo pregunta una vez, y entonces DosiCrew aún no tenía permiso."
+          }
+        }
+      }
+    },
     "Remove time": {
       "extractionState": "manual",
       "localizations": {
@@ -4873,6 +4919,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "iCloud no está disponible ahora mismo. Todo se guarda en este iPhone, pero no se comparte nada: los demás no ven lo que marcas."
+          }
+        }
+      }
+    },
+    "iOS did not ask again. Only removing DosiCrew and installing it afresh resets that. The plan itself is in iCloud and comes back; only the name in these settings has to be typed again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS hat nicht erneut gefragt. Das lässt sich nur zurücksetzen, indem DosiCrew gelöscht und neu installiert wird. Der Plan liegt in iCloud und kommt zurück; nur der Name in diesen Einstellungen muss neu eingetragen werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS did not ask again. Only removing DosiCrew and installing it afresh resets that. The plan itself is in iCloud and comes back; only the name in these settings has to be typed again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS no volvió a preguntar. Solo se restablece borrando DosiCrew e instalándola de nuevo. El plan está en iCloud y vuelve; solo hay que escribir otra vez el nombre en estos ajustes."
           }
         }
       }
