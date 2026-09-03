@@ -622,6 +622,29 @@
         }
       }
     },
+    "Change the time": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitpunkt ändern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar la hora"
+          }
+        }
+      }
+    },
     "Child": {
       "extractionState": "manual",
       "localizations": {
@@ -2876,6 +2899,29 @@
         }
       }
     },
+    "Planned for": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geplant für"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planned for"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previsto para"
+          }
+        }
+      }
+    },
     "Please note": {
       "extractionState": "manual",
       "localizations": {
@@ -4072,6 +4118,29 @@
         }
       }
     },
+    "Time given": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitpunkt der Gabe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time given"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de la toma"
+          }
+        }
+      }
+    },
     "Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back.": {
       "extractionState": "manual",
       "localizations": {
@@ -4459,6 +4528,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cuándo"
+          }
+        }
+      }
+    },
+    "When the dose actually went in. Everyone sharing the plan sees this time.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wann die Gabe tatsächlich erfolgt ist. Alle, die den Plan teilen, sehen diesen Zeitpunkt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When the dose actually went in. Everyone sharing the plan sees this time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuándo se administró realmente la toma. Todas las personas que comparten el plan ven esta hora."
           }
         }
       }

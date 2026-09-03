@@ -10,6 +10,9 @@ struct DoseSlotRow: View {
     var showsChildName: Bool = false
     var onSetStatus: (DoseStatus) -> Void
     var onClear: () -> Void
+    /// Only offered once something is recorded — there is no time to correct
+    /// before that.
+    var onEditTime: () -> Void = {}
 
     @State private var now = Date()
 
@@ -83,6 +86,9 @@ struct DoseSlotRow: View {
         }
         .contextMenu {
             if slot.isDone {
+                Button(action: onEditTime) {
+                    Label("Change the time", systemImage: "clock.arrow.circlepath")
+                }
                 Button(role: .destructive, action: onClear) {
                     Label("Undo", systemImage: "arrow.uturn.backward")
                 }
@@ -205,6 +211,7 @@ struct ExtraDoseRow: View {
     let extra: ExtraDose
     var showsChildName: Bool = false
     var onDelete: () -> Void
+    var onEditTime: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 12) {
@@ -228,6 +235,14 @@ struct ExtraDoseRow: View {
             Spacer()
         }
         .swipeActions(edge: .trailing) {
+            Button(role: .destructive, action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .contextMenu {
+            Button(action: onEditTime) {
+                Label("Change the time", systemImage: "clock.arrow.circlepath")
+            }
             Button(role: .destructive, action: onDelete) {
                 Label("Delete", systemImage: "trash")
             }

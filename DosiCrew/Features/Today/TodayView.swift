@@ -15,6 +15,9 @@ struct TodayView: View {
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
     @State private var extraDoseMedication: Medication?
     @State private var showingEventEditor = false
+    /// The log whose time is being corrected. The managed object, not the
+    /// snapshot: the snapshot is a copy and editing it would change nothing.
+    @State private var editingTimeOf: DoseLog?
 
     private var calendar: Calendar { .current }
 
@@ -57,6 +60,9 @@ struct TodayView: View {
             }
             .sheet(item: $extraDoseMedication) { medication in
                 ExtraDoseSheet(medication: medication, day: selectedDate)
+            }
+            .sheet(item: $editingTimeOf) { log in
+                DoseTimeSheet(log: log)
             }
             .sheet(isPresented: $showingEventEditor) {
                 if let first = patients.first {
@@ -211,7 +217,8 @@ private struct DayPlanList: View {
                                 medication: lookup[slot.medication.id],
                                 showsChildName: showsChildNames,
                                 onSetStatus: { status in apply(status, to: slot, medication: lookup[slot.medication.id]) },
-                                onClear: { clearLogs(of: slot) }
+                                onClear: { clearLogs(of: slot) },
+                                onEditTime: { editingTimeOf = resolvedLog(of: slot) }
                             )
                         }
                     } header: {
@@ -223,7 +230,12 @@ private struct DayPlanList: View {
             if !plan.extras.isEmpty {
                 Section {
                     ForEach(plan.extras) { extra in
-                        ExtraDoseRow(extra: extra, showsChildName: showsChildNames) { deleteLog(id: extra.log.id) }
+                        ExtraDoseRow(
+                            extra: extra,
+                            showsChildName: showsChildNames,
+                            onDelete: { deleteLog(id: extra.log.id) },
+                            onEditTime: { editingTimeOf = log(id: extra.log.id) }
+                        )
                     }
                 } header: {
                     Label("Extra doses", systemImage: "plus.circle")
@@ -299,6 +311,17 @@ private struct DayPlanList: View {
             personName: AppSettings.personName
         )
         commit()
+    }
+
+    /// The managed object behind a slot's decisive log — the `.given` entry
+    /// when there is one, since that is the time the row shows.
+    private func resolvedLog(of slot: DaySlot) -> DoseLog? {
+        guard let id = slot.resolvedLog?.id else { return nil }
+        return log(id: id)
+    }
+
+    private func log(id: UUID) -> DoseLog? {
+        logs.first { $0.id == id }
     }
 
     private func clearLogs(of slot: DaySlot) {
