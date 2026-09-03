@@ -4026,6 +4026,52 @@
         }
       }
     },
+    "The invitation could not be opened because iCloud is not available.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Einladung konnte nicht geöffnet werden, weil iCloud nicht verfügbar ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The invitation could not be opened because iCloud is not available."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir la invitación porque iCloud no está disponible."
+          }
+        }
+      }
+    },
+    "The invitation could not be opened, so the shared plan is not here. %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Einladung konnte nicht geöffnet werden, der geteilte Plan fehlt deshalb hier. %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The invitation could not be opened, so the shared plan is not here. %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir la invitación, así que el plan compartido no está aquí. %@"
+          }
+        }
+      }
+    },
     "The medication plan could not be loaded on this iPhone. Restart the app; if that does not help, reinstall it.": {
       "extractionState": "manual",
       "localizations": {

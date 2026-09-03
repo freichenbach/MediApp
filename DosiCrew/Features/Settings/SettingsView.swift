@@ -93,7 +93,12 @@ struct SettingsView: View {
     /// is more dangerous than a visible error, so every state says what it is.
     @ViewBuilder
     private var syncStatus: some View {
-        if PersistenceController.shared.usesLocalFallback {
+        // Ahead of everything else: somebody who tapped an invitation and sees
+        // no shared plan is looking for this sentence, and a sync verdict about
+        // their own data does not answer it.
+        if let shareError = PersistenceController.shared.shareAcceptanceError {
+            warning("The invitation could not be opened, so the shared plan is not here. \(shareError)")
+        } else if PersistenceController.shared.usesLocalFallback {
             warning("iCloud is not available right now. Everything is saved on this iPhone, but nothing is being shared — the others cannot see what you tick off.")
         } else if !sync.isEnabled {
             EmptyView()

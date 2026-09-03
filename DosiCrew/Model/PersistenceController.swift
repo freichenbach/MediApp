@@ -115,6 +115,10 @@ final class PersistenceController {
         // Only meaningful once it is clear whether mirroring is running at all.
         syncMonitor.start(enabled: !useInMemoryStore && !usesLocalFallback)
 
+        // An invitation tapped in Messages launches the app, so it can arrive
+        // before this point. Anything held back then is taken now.
+        acceptPendingShareInvitations()
+
         #if DEBUG
         if !useInMemoryStore { initializeCloudKitSchemaIfRequested() }
         #endif
@@ -500,15 +504,69 @@ final class PersistenceController {
         return (share, ckContainer)
     }
 
+    /// Takes an invitation the person tapped in Messages.
+    ///
+    /// Two things could go wrong here without anybody noticing, and both end
+    /// the same way: the invited person taps the link, the app opens, and the
+    /// plan is not there. Nothing says why, so the obvious conclusion is that
+    /// the app is broken — or worse, that it worked.
+    ///
+    /// The first is timing. The link launches the app, so this can run before
+    /// the shared store has finished opening; the invitation was then simply
+    /// dropped. It is now held and taken again once the store is there.
+    ///
+    /// The second is a real failure, which used to reach the log and nowhere
+    /// else. It is kept so the settings can say so.
     func acceptShare(metadata: CKShare.Metadata) {
         guard let sharedStore else {
-            Self.logger.error("Share accepted before the shared store finished loading")
+            Self.logger.notice("Share arrived before the shared store was open — holding it")
+            pendingShareInvitations.append(metadata)
             return
         }
-        container.acceptShareInvitations(from: [metadata], into: sharedStore) { _, error in
-            if let error {
-                Self.logger.error("Accepting share failed: \(error.localizedDescription)")
+        container.acceptShareInvitations(from: [metadata], into: sharedStore) { [weak self] _, error in
+            // CloudKit answers on whatever thread it happens to be on. The
+            // settings read this from the main thread, and the app has already
+            // paid once for ignoring that — the crash opening a reminder from
+            // the lock screen was the same mistake in the notification
+            // delegate.
+            DispatchQueue.main.async {
+                if let error {
+                    Self.logger.error("Accepting share failed: \(error.localizedDescription)")
+                    self?.shareAcceptanceError = error.localizedDescription
+                } else {
+                    Self.logger.notice("Share accepted")
+                    self?.shareAcceptanceError = nil
+                }
             }
+        }
+    }
+
+    /// Invitations that arrived before the store was ready, in the order they
+    /// came. Emptied by `acceptPendingShareInvitations()`.
+    private var pendingShareInvitations: [CKShare.Metadata] = []
+
+    /// Set when accepting an invitation failed, so the settings can say that
+    /// the shared plan is missing for a reason rather than leaving the person
+    /// to guess.
+    private(set) var shareAcceptanceError: String?
+
+    /// Called once the stores are open. Does nothing in the ordinary case,
+    /// which is the point: it only matters on the launch that came from
+    /// tapping the invitation itself.
+    private func acceptPendingShareInvitations() {
+        guard !pendingShareInvitations.isEmpty else { return }
+        let held = pendingShareInvitations
+        pendingShareInvitations.removeAll()
+        guard sharedStore != nil else {
+            // No shared store at all — the local fallback, or CloudKit being
+            // unavailable. Retrying would not help; saying so does.
+            shareAcceptanceError = String(
+                localized: "The invitation could not be opened because iCloud is not available."
+            )
+            return
+        }
+        for metadata in held {
+            acceptShare(metadata: metadata)
         }
     }
 
