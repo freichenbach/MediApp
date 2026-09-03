@@ -258,13 +258,32 @@ extension CareEvent {
         return trimmed.isEmpty ? String(localized: "Event") : trimmed
     }
 
-    /// "38.9 °C", or nil when the event carries no measurement.
+    /// "38.9 °C", "120/80 mmHg", "110 mg/dl (6.1 mmol/l)" — or nil when the
+    /// event carries no measurement.
+    ///
+    /// Blood sugar shows both units because a shared plan is exactly where two
+    /// people read two different ones, and a number without the unit they think
+    /// in is a number they have to convert in their head.
     var measurementDescription: String? {
         guard hasMeasurement else { return nil }
-        let value = Medication.doseFormatter.string(from: NSNumber(value: measurementValue))
-            ?? "\(measurementValue)"
-        let unit = (measurementUnit ?? "").trimmingCharacters(in: .whitespaces)
-        return unit.isEmpty ? value : "\(value) \(unit)"
+
+        switch categoryEnum.measurementShape {
+        case .bloodPressure:
+            return BloodPressure.description(
+                systolic: measurementValue,
+                diastolic: measurementSecondaryValue
+            ) + " " + BloodPressure.unit
+
+        case .bloodSugar:
+            let unit = BloodSugarUnit.from(unitString: measurementUnit) ?? .mgPerDeciliter
+            return unit.descriptionWithConversion(measurementValue)
+
+        case .single, .noValue:
+            let value = Medication.doseFormatter.string(from: NSNumber(value: measurementValue))
+                ?? "\(measurementValue)"
+            let unit = (measurementUnit ?? "").trimmingCharacters(in: .whitespaces)
+            return unit.isEmpty ? value : "\(value) \(unit)"
+        }
     }
 
     @discardableResult

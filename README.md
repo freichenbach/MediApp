@@ -374,6 +374,31 @@ wirklich läuft.
 Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
 Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
 
+### Schema erweitern, wenn das Modell wächst
+
+Ein neues Attribut im Datenmodell ist zugleich eine CloudKit-Schemaänderung, und
+in der Produktionsumgebung dürfen keine neuen Felder entstehen. Ohne Deploy
+scheitert die Synchronisation für jeden Datensatz, der das Feld benutzt — die
+App läuft weiter, aber die anderen sehen den Eintrag nie.
+
+Zuletzt betraf das `measurementSecondaryValue` an `CareEvent`, den zweiten Wert
+eines Blutdrucks. Core Data nennt das Feld in CloudKit `CD_` plus dem
+Attributnamen.
+
+**Im Browser, der kürzeste Weg für ein einzelnes Feld:** CloudKit Console →
+Schema → Record Types → Umgebung **Development** → `CD_CareEvent` →
+*Add Field* → Name `CD_measurementSecondaryValue`, Typ **Double** → speichern →
+*Deploy Schema Changes* → Production.
+
+**Über die App**, wenn es mehrere Felder sind oder der Name unsicher ist: den
+Release-Workflow mit `icloud_environment` = **Development** starten, mit diesem
+Build einen Eintrag der neuen Art anlegen — CloudKit legt fehlende Felder in
+Development von selbst an — dann deployen und wieder einen Production-Build
+ziehen. Ausführlicher steht das im Abschnitt darunter.
+
+Die Regel dahinter gilt für jede Modelländerung: In Development entsteht das
+Schema von selbst, in Production nur durch einen Deploy.
+
 ### Teilen: das Schema muss das Teilen kennen
 
 Beim ersten Einladen kann diese Meldung kommen:

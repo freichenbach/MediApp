@@ -17,6 +17,10 @@ struct EventEditView: View {
     @State private var hasMeasurement = false
     @State private var measurementText: String = ""
     @State private var measurementUnit: String = "°C"
+    /// The diastolic half. Only ever used by blood pressure — nothing else
+    /// takes two numbers.
+    @State private var secondaryText: String = ""
+    @State private var bloodSugarUnit: BloodSugarUnit = .mgPerDeciliter
     @State private var loaded = false
 
     private var isNew: Bool { event == nil }
@@ -42,9 +46,13 @@ struct EventEditView: View {
                 }
                 .onChange(of: category) { _, newValue in
                     if let suggested = newValue.suggestedUnit {
-                        hasMeasurement = true
                         measurementUnit = suggested
                     }
+                    if newValue.startsWithMeasurement { hasMeasurement = true }
+                    // Switching away from blood pressure leaves the second
+                    // number behind; keeping it would silently attach a
+                    // diastolic value to a temperature.
+                    if newValue.measurementShape != .bloodPressure { secondaryText = "" }
                 }
 
                 TextField("Title", text: $title)
@@ -53,17 +61,9 @@ struct EventEditView: View {
 
             Section {
                 Toggle("Record a value", isOn: $hasMeasurement.animation())
-                if hasMeasurement {
-                    HStack {
-                        TextField("0", text: $measurementText)
-                            .keyboardType(.decimalPad)
-                        TextField("Unit", text: $measurementUnit)
-                            .frame(maxWidth: 80)
-                            .multilineTextAlignment(.trailing)
-                    }
-                }
+                if hasMeasurement { measurementFields }
             } footer: {
-                Text("For example a temperature of 38.9 °C.")
+                measurementFooter
             }
 
             Section("Note") {
@@ -99,6 +99,98 @@ struct EventEditView: View {
         .onDisappear { if !isNew { commit() } }
     }
 
+    // MARK: Measurement fields
+
+    @ViewBuilder
+    private var measurementFields: some View {
+        switch category.measurementShape {
+        case .bloodPressure:
+            LabeledContent("Systolic") {
+                HStack(spacing: 4) {
+                    TextField("120", text: $measurementText)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                    Text(BloodPressure.unit).foregroundStyle(.secondary)
+                }
+            }
+            LabeledContent("Diastolic") {
+                HStack(spacing: 4) {
+                    TextField("80", text: $secondaryText)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                    Text(BloodPressure.unit).foregroundStyle(.secondary)
+                }
+            }
+            if let warning = bloodPressureWarning {
+                Label(warning, systemImage: "exclamationmark.triangle")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+
+        case .bloodSugar:
+            HStack {
+                TextField("0", text: $measurementText)
+                    .keyboardType(.decimalPad)
+                Picker("Unit", selection: $bloodSugarUnit) {
+                    ForEach(BloodSugarUnit.allCases) { unit in
+                        Text(unit.label).tag(unit)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 160)
+            }
+            // Shown while typing, not only after saving: the point of the
+            // conversion is that the other person in the household reads the
+            // other unit, and seeing both makes a wrong unit obvious at once.
+            if let converted = convertedBloodSugar {
+                Text(converted)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+        case .single, .noValue:
+            HStack {
+                TextField("0", text: $measurementText)
+                    .keyboardType(.decimalPad)
+                TextField("Unit", text: $measurementUnit)
+                    .frame(maxWidth: 80)
+                    .multilineTextAlignment(.trailing)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var measurementFooter: some View {
+        switch category.measurementShape {
+        case .bloodPressure:
+            Text("Systolic over diastolic, as the cuff reads them — for example 120 over 80.")
+        case .bloodSugar:
+            Text("Enter it in the unit you read. The other one is worked out for you, so nobody has to convert in their head.")
+        case .single, .noValue:
+            Text("For example a temperature of 38.9 °C.")
+        }
+    }
+
+    /// Only the mistake that is certainly a mistake.
+    ///
+    /// Values outside the usual range are not flagged: a low pressure in a
+    /// small child is exactly what has to reach the doctor, and an app that
+    /// argues about it teaches people to type something else. The two numbers
+    /// the wrong way round, though, is never a reading.
+    private var bloodPressureWarning: LocalizedStringKey? {
+        let systolic = DecimalText.value(of: measurementText)
+        let diastolic = DecimalText.value(of: secondaryText)
+        guard BloodPressure.isReversed(systolic: systolic, diastolic: diastolic) else { return nil }
+        return "The lower number is not below the upper one — are they the wrong way round?"
+    }
+
+    private var convertedBloodSugar: String? {
+        let value = DecimalText.value(of: measurementText)
+        guard value > 0 else { return nil }
+        let other = bloodSugarUnit.other
+        return "= " + other.format(bloodSugarUnit.convert(value, to: other))
+    }
+
     // MARK: Load and save
 
     private func load() {
@@ -112,6 +204,10 @@ struct EventEditView: View {
             hasMeasurement = event.hasMeasurement
             measurementText = DecimalText.text(for: event.measurementValue)
             measurementUnit = event.measurementUnit ?? category.suggestedUnit ?? ""
+            secondaryText = event.measurementSecondaryValue > 0
+                ? DecimalText.text(for: event.measurementSecondaryValue)
+                : ""
+            bloodSugarUnit = BloodSugarUnit.from(unitString: event.measurementUnit) ?? .mgPerDeciliter
         } else {
             category = .fever
             measurementUnit = EventCategory.fever.suggestedUnit ?? ""
@@ -147,7 +243,24 @@ struct EventEditView: View {
         target.note = note.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         target.hasMeasurement = hasMeasurement
         target.measurementValue = hasMeasurement ? DecimalText.value(of: measurementText) : 0
-        target.measurementUnit = hasMeasurement ? measurementUnit.trimmingCharacters(in: .whitespaces).nilIfEmpty : nil
+
+        switch (hasMeasurement, category.measurementShape) {
+        case (true, .bloodPressure):
+            target.measurementSecondaryValue = DecimalText.value(of: secondaryText)
+            target.measurementUnit = BloodPressure.unit
+        case (true, .bloodSugar):
+            // The unit is stored as entered and the value is never converted:
+            // a stored conversion would round somebody's reading and hand the
+            // doctor a figure no meter ever showed.
+            target.measurementSecondaryValue = 0
+            target.measurementUnit = bloodSugarUnit.rawValue
+        case (true, _):
+            target.measurementSecondaryValue = 0
+            target.measurementUnit = measurementUnit.trimmingCharacters(in: .whitespaces).nilIfEmpty
+        case (false, _):
+            target.measurementSecondaryValue = 0
+            target.measurementUnit = nil
+        }
         if target.personName == nil { target.personName = AppSettings.personName }
 
         PersistenceController.shared.save(context)

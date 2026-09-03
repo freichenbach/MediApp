@@ -139,6 +139,8 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     case vomiting = 2
     case doctorVisit = 3
     case note = 4
+    case bloodPressure = 5
+    case bloodSugar = 6
 
     var id: Int16 { rawValue }
 
@@ -149,6 +151,8 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .vomiting: return "Vomiting"
         case .doctorVisit: return "Doctor visit"
         case .note: return "Note"
+        case .bloodPressure: return "Blood pressure"
+        case .bloodSugar: return "Blood sugar"
         }
     }
 
@@ -159,6 +163,8 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .vomiting: return "arrow.up.heart.fill"
         case .doctorVisit: return "stethoscope"
         case .note: return "note.text"
+        case .bloodPressure: return "heart.circle"
+        case .bloodSugar: return "drop.circle"
         }
     }
 
@@ -169,6 +175,8 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .vomiting: return .purple
         case .doctorVisit: return .blue
         case .note: return .secondary
+        case .bloodPressure: return .pink
+        case .bloodSugar: return .indigo
         }
     }
 
@@ -176,7 +184,30 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     var suggestedUnit: String? {
         switch self {
         case .fever: return "°C"
+        case .bloodPressure: return BloodPressure.unit
+        case .bloodSugar: return BloodSugarUnit.mgPerDeciliter.rawValue
         default: return nil
+        }
+    }
+
+    /// What kind of number this category takes — one, two, or one out of a
+    /// fixed pair of units. The editor, the list and the report all read this
+    /// rather than each deciding for themselves.
+    var measurementShape: MeasurementShape {
+        switch self {
+        case .bloodPressure: return .bloodPressure
+        case .bloodSugar: return .bloodSugar
+        case .fever: return .single(defaultUnit: "°C")
+        case .sideEffect, .vomiting, .doctorVisit, .note: return .single(defaultUnit: nil)
+        }
+    }
+
+    /// Whether a fresh event of this kind should start with the value field
+    /// open. Measuring is the whole point of these three.
+    var startsWithMeasurement: Bool {
+        switch self {
+        case .fever, .bloodPressure, .bloodSugar: return true
+        default: return false
         }
     }
 }

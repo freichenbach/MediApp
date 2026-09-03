@@ -900,3 +900,110 @@ final class MidnightRolloverTests: XCTestCase {
         )
     }
 }
+
+// MARK: - Blood pressure and blood sugar
+
+/// Two units that differ by a factor of eighteen, in a household where one
+/// person may read one and another the other. A conversion that is off is not a
+/// cosmetic bug — it is a wrong number in a record a doctor reads.
+final class MeasurementTests: XCTestCase {
+
+    // MARK: Blood sugar
+
+    func testTheConversionMatchesTheFiguresPeopleKnow() {
+        let mg = BloodSugarUnit.mgPerDeciliter
+        // The landmarks anybody who measures knows by heart.
+        XCTAssertEqual(mg.convert(90, to: .mmolPerLiter), 5.0, accuracy: 0.02)
+        XCTAssertEqual(mg.convert(180, to: .mmolPerLiter), 10.0, accuracy: 0.02)
+        XCTAssertEqual(BloodSugarUnit.mmolPerLiter.convert(5.5, to: .mgPerDeciliter), 99.1, accuracy: 0.1)
+    }
+
+    func testConvertingThereAndBackChangesNothing() {
+        for value in [42.0, 90.0, 126.0, 300.0] {
+            let there = BloodSugarUnit.mgPerDeciliter.convert(value, to: .mmolPerLiter)
+            let back = BloodSugarUnit.mmolPerLiter.convert(there, to: .mgPerDeciliter)
+            XCTAssertEqual(back, value, accuracy: 0.001, "\(value) did not survive the round trip")
+        }
+    }
+
+    func testConvertingToItsOwnUnitLeavesTheValueAlone() {
+        XCTAssertEqual(BloodSugarUnit.mgPerDeciliter.convert(110, to: .mgPerDeciliter), 110)
+    }
+
+    /// mg/dL comes off a meter whole, mmol/L is spoken to one decimal. Showing
+    /// "6.10555 mmol/l" would look like precision nobody measured.
+    func testEachUnitIsShownToTheDecimalsItIsReadTo() {
+        XCTAssertEqual(BloodSugarUnit.mgPerDeciliter.format(110), "110 mg/dl")
+        XCTAssertEqual(BloodSugarUnit.mmolPerLiter.format(6.1055), "6.1 mmol/l")
+    }
+
+    func testBothUnitsAreShownSoNobodyHasToConvertInTheirHead() {
+        let text = BloodSugarUnit.mgPerDeciliter.descriptionWithConversion(110)
+        XCTAssertTrue(text.hasPrefix("110 mg/dl"), "The figure that was read comes first: \(text)")
+        XCTAssertTrue(text.contains("6.1 mmol/l"), text)
+    }
+
+    func testAStoredUnitIsRecognisedAgainWhateverTheSpacingOrCase() {
+        XCTAssertEqual(BloodSugarUnit.from(unitString: "mg/dl"), .mgPerDeciliter)
+        XCTAssertEqual(BloodSugarUnit.from(unitString: " MMOL/L "), .mmolPerLiter)
+        XCTAssertNil(BloodSugarUnit.from(unitString: "°C"))
+        XCTAssertNil(BloodSugarUnit.from(unitString: nil))
+    }
+
+    // MARK: Blood pressure
+
+    func testBloodPressureReadsAsPeopleSayIt() {
+        XCTAssertEqual(BloodPressure.description(systolic: 120, diastolic: 80), "120/80")
+    }
+
+    func testBloodPressureIsShownWhole() {
+        // A cuff reading 118.6 does not exist; the decimal would be noise.
+        XCTAssertEqual(BloodPressure.description(systolic: 118.6, diastolic: 79.4), "119/79")
+    }
+
+    /// The only mistake worth flagging. Everything else that looks unusual may
+    /// be exactly what has to reach the doctor.
+    func testTheNumbersTheWrongWayRoundAreFlagged() {
+        XCTAssertTrue(BloodPressure.isReversed(systolic: 80, diastolic: 120))
+        XCTAssertTrue(BloodPressure.isReversed(systolic: 90, diastolic: 90))
+        XCTAssertFalse(BloodPressure.isReversed(systolic: 120, diastolic: 80))
+    }
+
+    func testAHalfFilledPairIsNotYetAMistake() {
+        // Somebody is still typing. Shouting at them mid-entry teaches them to
+        // ignore the warning.
+        XCTAssertFalse(BloodPressure.isReversed(systolic: 0, diastolic: 80))
+        XCTAssertFalse(BloodPressure.isReversed(systolic: 120, diastolic: 0))
+    }
+
+    /// A low pressure in a small child is exactly what must reach the doctor,
+    /// so the range warns and never refuses.
+    func testAChildsLowPressureIsStillInsideThePlausibleRange() {
+        XCTAssertTrue(BloodPressure.plausibleSystolic.contains(75))
+        XCTAssertTrue(BloodPressure.plausibleDiastolic.contains(40))
+    }
+
+    // MARK: Shapes
+
+    func testEachCategoryAsksForTheRightKindOfNumber() {
+        XCTAssertEqual(EventCategory.bloodPressure.measurementShape, .bloodPressure)
+        XCTAssertEqual(EventCategory.bloodSugar.measurementShape, .bloodSugar)
+        XCTAssertEqual(EventCategory.fever.measurementShape, .single(defaultUnit: "°C"))
+        XCTAssertEqual(EventCategory.note.measurementShape, .single(defaultUnit: nil))
+    }
+
+    func testTheNewCategoriesKeepTheirStoredNumbers() {
+        // Raw values are what sits in the database and travels through iCloud.
+        // Renumbering them would silently turn every stored fever into
+        // something else.
+        XCTAssertEqual(EventCategory.fever.rawValue, 0)
+        XCTAssertEqual(EventCategory.note.rawValue, 4)
+        XCTAssertEqual(EventCategory.bloodPressure.rawValue, 5)
+        XCTAssertEqual(EventCategory.bloodSugar.rawValue, 6)
+    }
+
+    func testAnUnknownCategoryFallsBackToANoteRatherThanCrashing() {
+        // An older build reading an event written by a newer one.
+        XCTAssertNil(EventCategory(rawValue: 99))
+    }
+}

@@ -714,6 +714,52 @@
         }
       }
     },
+    "Blood pressure": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blutdruck"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blood pressure"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tensión arterial"
+          }
+        }
+      }
+    },
+    "Blood sugar": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blutzucker"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blood sugar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glucemia"
+          }
+        }
+      }
+    },
     "Born": {
       "extractionState": "manual",
       "localizations": {
@@ -1082,6 +1128,29 @@
         }
       }
     },
+    "Diastolic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diastolisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diastolic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diastólica"
+          }
+        }
+      }
+    },
     "Doctor visit": {
       "extractionState": "manual",
       "localizations": {
@@ -1446,6 +1515,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Termina el"
+          }
+        }
+      }
+    },
+    "Enter it in the unit you read. The other one is worked out for you, so nobody has to convert in their head.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In der Einheit eintragen, die Sie ablesen. Die andere wird ausgerechnet, damit niemand im Kopf umrechnen muss."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter it in the unit you read. The other one is worked out for you, so nobody has to convert in their head."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introdúzcalo en la unidad que lea. La otra se calcula sola, para que nadie tenga que convertir de cabeza."
           }
         }
       }
@@ -4693,6 +4785,52 @@
         }
       }
     },
+    "Systolic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systolisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systolic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistólica"
+          }
+        }
+      }
+    },
+    "Systolic over diastolic, as the cuff reads them — for example 120 over 80.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systolisch über diastolisch, so wie das Messgerät sie anzeigt — zum Beispiel 120 zu 80."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systolic over diastolic, as the cuff reads them — for example 120 over 80."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistólica sobre diastólica, tal como las muestra el tensiómetro: por ejemplo 120 sobre 80."
+          }
+        }
+      }
+    },
     "Tablet": {
       "extractionState": "manual",
       "localizations": {
@@ -4850,6 +4988,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se pudo abrir la invitación, así que el plan compartido no está aquí. %@"
+          }
+        }
+      }
+    },
+    "The lower number is not below the upper one — are they the wrong way round?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der untere Wert liegt nicht unter dem oberen — sind sie vertauscht?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The lower number is not below the upper one — are they the wrong way round?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El valor inferior no es menor que el superior: ¿están intercambiados?"
           }
         }
       }
