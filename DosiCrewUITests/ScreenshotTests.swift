@@ -43,7 +43,7 @@ final class ScreenshotTests: XCTestCase {
         selectTab(1)
         capture("03-Medikamente")
 
-        openFirstRow()
+        openMedication(named: "Amoxicillin")
         capture("04-Medikament-bearbeiten")
         dismissSheet()
 
@@ -55,6 +55,10 @@ final class ScreenshotTests: XCTestCase {
 
         // Assertions last, so a failure never costs us the pictures.
         selectTab(0)
+        // The tab kept the scroll position from `scrollDown()`, and the
+        // duplicate banner sits at the very top — out of the hierarchy, not
+        // just off-screen.
+        scrollToTop()
         XCTAssertTrue(
             app.staticTexts["Amoxicillin"].waitForExistence(timeout: 5),
             "The seeded medication is missing from the Today screen"
@@ -76,10 +80,27 @@ final class ScreenshotTests: XCTestCase {
         tabs.element(boundBy: index).tap()
     }
 
-    private func openFirstRow() {
-        let row = app.cells.firstMatch
-        guard row.waitForExistence(timeout: 5) else { return }
-        row.tap()
+    /// Opens a medication by name rather than by position.
+    ///
+    /// "The first cell" stopped meaning the first medication once the list grew
+    /// section headers per child: the tap landed on the header and the editor
+    /// never opened, which cost a screenshot without failing the test.
+    private func openMedication(named name: String) {
+        let isRow = NSPredicate(format: "label BEGINSWITH %@", name)
+        for query in [app.buttons, app.cells] {
+            let row = query.matching(isRow).firstMatch
+            if row.waitForExistence(timeout: 5) {
+                row.tap()
+                return
+            }
+        }
+        // The row may expose its parts rather than one folded label.
+        let text = app.staticTexts[name]
+        if text.waitForExistence(timeout: 2) {
+            text.tap()
+            return
+        }
+        XCTFail("No medication row labelled \(name)")
     }
 
     private func dismissSheet() {
@@ -89,11 +110,21 @@ final class ScreenshotTests: XCTestCase {
     }
 
     private func scrollDown() {
-        let scrollable = app.scrollViews.firstMatch.exists
-            ? app.scrollViews.firstMatch
-            : app.collectionViews.firstMatch
-        guard scrollable.exists else { return }
+        guard let scrollable = scrollable() else { return }
         scrollable.swipeUp()
+    }
+
+    /// Three swipes: the day list is as long as the number of children makes
+    /// it, and one swipe no longer reaches the top.
+    private func scrollToTop() {
+        guard let scrollable = scrollable() else { return }
+        for _ in 0..<3 { scrollable.swipeDown() }
+    }
+
+    private func scrollable() -> XCUIElement? {
+        if app.scrollViews.firstMatch.exists { return app.scrollViews.firstMatch }
+        if app.collectionViews.firstMatch.exists { return app.collectionViews.firstMatch }
+        return nil
     }
 
     private func capture(_ name: String) {

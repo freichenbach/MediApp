@@ -23,18 +23,18 @@ def sanitize(name: str) -> str:
     return name or "screenshot"
 
 
-EXPORT_SUFFIX = re.compile(r"_\d+_[0-9A-Fa-f-]{36}(?=\.png$)")
+EXPORT_SUFFIX = re.compile(r"_\d+_[0-9A-Fa-f-]{36}(?=(\.[A-Za-z0-9]+)?$)")
 
 
-def strip_export_suffix(name: str) -> str | None:
+def strip_export_suffix(name: str) -> str:
     """`01-Heute_0_E7FD6CDA-….png` -> `01-Heute.png`.
 
-    The modern exporter already puts the attachment's name in the file name and
-    appends an index and a uuid. Without this the repository fills up with
-    unreadable names even though the information is right there.
+    The exporter appends an index and a uuid to the name the test assigned.
+    Both the file on disk *and* the manifest's suggested name carry it — which
+    is what made an earlier attempt at this ineffective: the suggested name won
+    and was never cleaned. So it is applied last, to whichever name wins.
     """
-    stripped = EXPORT_SUFFIX.sub("", name)
-    return stripped if stripped != name else None
+    return EXPORT_SUFFIX.sub("", name)
 
 
 def collect_renames(node, out):
@@ -100,17 +100,15 @@ def main() -> int:
         if not name.lower().endswith(".png"):
             os.remove(path)          # manifests and non-image attachments
             continue
-        readable = renames.get(name) or strip_export_suffix(name)
-        if readable:
-            new_name = sanitize(readable)
-            if not new_name.lower().endswith(".png"):
-                new_name += ".png"
-            new_path = os.path.join(directory, new_name)
-            if new_path != path:
-                os.replace(path, new_path)
+        new_name = sanitize(strip_export_suffix(renames.get(name, name)))
+        if not new_name.lower().endswith(".png"):
+            new_name += ".png"
+        new_path = os.path.join(directory, new_name)
+        if new_path != path:
+            os.replace(path, new_path)
             print(f"{name} -> {new_name}")
         else:
-            print(f"{name} (no manifest entry, keeping name)")
+            print(f"{name} (already named)")
         kept += 1
 
     print(f"{kept} screenshot(s) in {directory}")
