@@ -224,3 +224,23 @@ final class ScheduleEngineTests: XCTestCase {
         )
     }
 }
+
+/// The child's colour has to be the same on every device and every launch —
+/// otherwise the one visual cue that separates two children stops being a cue.
+final class PatientColorTests: XCTestCase {
+
+    func testColourIsDerivedFromTheIdentifierAndStable() {
+        let id = UUID(uuidString: "6E9F1B2A-0C4D-4E5F-8A9B-0C1D2E3F4A5B")!
+        let first = MedColor.index(forPatient: id)
+        for _ in 0..<100 {
+            XCTAssertEqual(MedColor.index(forPatient: id), first, "The colour must not vary between calls")
+        }
+        XCTAssertTrue((0..<MedColor.allCases.count).contains(first))
+    }
+
+    func testDifferentChildrenUsuallyGetDifferentColours() {
+        let ids = (0..<40).map { _ in UUID() }
+        let distinct = Set(ids.map { MedColor.index(forPatient: $0) })
+        XCTAssertGreaterThan(distinct.count, 1, "Every child ended up with the same colour")
+    }
+}

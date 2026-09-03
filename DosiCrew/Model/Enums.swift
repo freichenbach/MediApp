@@ -250,6 +250,28 @@ enum MedColor: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var color: Color { Color(hex: rawValue) ?? .accentColor }
     static var fallback: MedColor { .blue }
+
+    /// A stable colour for a child, derived from their identifier.
+    ///
+    /// Deliberately not the medication's colour: two children can be on the
+    /// same medicine, and the row has to tell them apart rather than blend
+    /// them together. Derived rather than stored so it is identical on every
+    /// iPhone without syncing anything.
+    static func forPatient(_ id: UUID) -> Color {
+        allCases[index(forPatient: id)].color
+    }
+
+    /// Split out so it can be tested without touching SwiftUI.
+    ///
+    /// Derived from the raw bytes, **not** from `hashValue`: Swift seeds its
+    /// hasher per process, so a hash-based colour would change on every launch
+    /// and differ between the iPhones sharing a plan.
+    static func index(forPatient id: UUID) -> Int {
+        let sum = withUnsafeBytes(of: id.uuid) { bytes in
+            bytes.reduce(0) { $0 &+ Int($1) }
+        }
+        return sum % allCases.count
+    }
 }
 
 extension Color {

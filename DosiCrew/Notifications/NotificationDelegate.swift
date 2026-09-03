@@ -30,8 +30,13 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
         switch response.actionIdentifier {
         case NotificationScheduler.markGivenAction:
+            // Only the write is awaited — it is what the person expects to have
+            // happened when the banner disappears. Rebuilding the whole pending
+            // set afterwards can take seconds, and iOS terminates an app that
+            // keeps it waiting on a notification response. So that part runs
+            // detached.
             await markGiven(medicationID: medicationID, scheduledAt: scheduledAt)
-            await NotificationScheduler.shared.reschedule()
+            Task.detached { await NotificationScheduler.shared.reschedule() }
 
         case NotificationScheduler.snoozeAction:
             let name = await medicationName(for: medicationID)
@@ -43,6 +48,8 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             )
 
         default:
+            // Tapping the banner itself just opens the app; the Today screen
+            // already shows what is due.
             break
         }
     }

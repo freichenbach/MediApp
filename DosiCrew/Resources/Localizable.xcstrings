@@ -47,6 +47,52 @@
         }
       }
     },
+    "%lld medications": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Medikamente"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld medications"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld medicamentos"
+          }
+        }
+      }
+    },
+    "1 medication": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 Medikament"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 medication"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 medicamento"
+          }
+        }
+      }
+    },
     "A dose below was ticked off by more than one person. Check with the others before giving anything else.": {
       "extractionState": "manual",
       "localizations": {
@@ -116,6 +162,29 @@
         }
       }
     },
+    "Add a child first, then their medications.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lege zuerst ein Kind an, dann dessen Medikamente."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a child first, then their medications."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade primero un niño y luego sus medicamentos."
+          }
+        }
+      }
+    },
     "Add a medication under the Medications tab to get started.": {
       "extractionState": "manual",
       "localizations": {
@@ -181,6 +250,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Añadir una hora"
+          }
+        }
+      }
+    },
+    "Add child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir niño"
           }
         }
       }
@@ -415,6 +507,29 @@
         }
       }
     },
+    "Children": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kinder"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Children"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niños"
+          }
+        }
+      }
+    },
     "Colour": {
       "extractionState": "manual",
       "localizations": {
@@ -503,6 +618,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eliminar"
+          }
+        }
+      }
+    },
+    "Delete %@ and everything recorded for them?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ und alles dazu Erfasste löschen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %@ and everything recorded for them?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar a %@ y todo lo registrado?"
+          }
+        }
+      }
+    },
+    "Delete child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar niño"
           }
         }
       }
@@ -645,6 +806,29 @@
         }
       }
     },
+    "Each child is shared separately.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jedes Kind wird einzeln geteilt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each child is shared separately."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada niño se comparte por separado."
+          }
+        }
+      }
+    },
     "Each iPhone reminds on its own. When somebody else ticks a dose off, the pending reminder disappears here too.": {
       "extractionState": "manual",
       "localizations": {
@@ -687,6 +871,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cada hora se convierte en una línea que marcar en la pantalla Hoy."
+          }
+        }
+      }
+    },
+    "Edit child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind bearbeiten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar niño"
           }
         }
       }
@@ -1055,6 +1262,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Por ejemplo, una temperatura de 38,9 °C."
+          }
+        }
+      }
+    },
+    "For which child?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für welches Kind?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For which child?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Para qué niño?"
           }
         }
       }
@@ -1634,6 +1864,29 @@
         }
       }
     },
+    "Medications, schedules, logged doses and events for this child are removed on every shared iPhone. This cannot be undone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medikamente, Zeitpläne, erfasste Gaben und Ereignisse dieses Kindes verschwinden auf allen beteiligten iPhones. Das lässt sich nicht rückgängig machen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medications, schedules, logged doses and events for this child are removed on every shared iPhone. This cannot be undone."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los medicamentos, horarios, dosis registradas y eventos de este niño desaparecen en todos los iPhones compartidos. Esto no se puede deshacer."
+          }
+        }
+      }
+    },
     "Midday": {
       "extractionState": "manual",
       "localizations": {
@@ -1726,6 +1979,29 @@
         }
       }
     },
+    "New child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Kind"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo niño"
+          }
+        }
+      }
+    },
     "New event": {
       "extractionState": "manual",
       "localizations": {
@@ -1814,6 +2090,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Noche"
+          }
+        }
+      }
+    },
+    "No children yet": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Kinder"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No children yet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay niños"
           }
         }
       }

@@ -3,37 +3,40 @@ import SwiftUI
 import UserNotifications
 
 struct SettingsView: View {
-    @ObservedObject var patient: Patient
-
     @Environment(\.managedObjectContext) private var context
+
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\Patient.createdAt, order: .forward)],
+        animation: .default
+    )
+    private var patients: FetchedResults<Patient>
 
     @AppStorage(AppSettings.personNameKey) private var personName: String = ""
     @ObservedObject private var sync = PersistenceController.shared.syncMonitor
     @AppStorage(AppSettings.remindersEnabledKey) private var remindersEnabled: Bool = true
     @AppStorage(AppSettings.overdueRemindersKey) private var overdueReminders: Bool = true
 
-    @State private var patientName: String = ""
-    @State private var hasBirthDate = false
-    @State private var birthDate = Date()
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
-    @State private var loaded = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Name", text: $patientName)
-                        .textInputAutocapitalization(.words)
-                        .onSubmit(savePatient)
+                    ForEach(patients, id: \.objectID) { child in
+                        NavigationLink {
+                            PatientEditView(patient: child)
+                        } label: {
+                            ChildRow(patient: child)
+                        }
+                    }
 
-                    Toggle("Date of birth", isOn: $hasBirthDate.animation())
-                    if hasBirthDate {
-                        DatePicker("Born", selection: $birthDate, in: ...Date(), displayedComponents: .date)
+                    Button(action: addChild) {
+                        Label("Add child", systemImage: "plus")
                     }
                 } header: {
-                    Text("Who the plan is for")
+                    Text("Children")
                 } footer: {
-                    Text("Shared with everyone you invite.")
+                    Text("Each child is shared separately.")
                 }
 
                 Section {
@@ -46,12 +49,6 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    NavigationLink {
-                        SharingView(patient: patient)
-                    } label: {
-                        Label("Share with other people", systemImage: "person.2.fill")
-                    }
-                } footer: {
                     syncStatus
                 }
 
@@ -71,10 +68,6 @@ struct SettingsView: View {
                     Text("Each iPhone reminds on its own. When somebody else ticks a dose off, the pending reminder disappears here too.")
                 }
 
-                Section {
-                    LabeledContent("Medications", value: "\(patient.activeMedications.count)")
-                    LabeledContent("Events", value: "\(patient.sortedEvents.count)")
-                }
 
                 Section {
                     Text("DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.")
@@ -86,11 +79,8 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .onAppear(perform: load)
-            .onDisappear(perform: savePatient)
             .onChange(of: remindersEnabled) { _, _ in rescheduleReminders() }
             .onChange(of: overdueReminders) { _, _ in rescheduleReminders() }
-            .onChange(of: hasBirthDate) { _, _ in savePatient() }
-            .onChange(of: birthDate) { _, _ in savePatient() }
         }
     }
 
@@ -129,16 +119,10 @@ struct SettingsView: View {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
             await MainActor.run { authorizationStatus = settings.authorizationStatus }
         }
-        guard !loaded else { return }
-        loaded = true
-        patientName = patient.name ?? ""
-        if let birth = patient.birthDate { hasBirthDate = true; birthDate = birth }
     }
 
-    private func savePatient() {
-        let trimmed = patientName.trimmingCharacters(in: .whitespacesAndNewlines)
-        patient.name = trimmed.isEmpty ? nil : trimmed
-        patient.birthDate = hasBirthDate ? birthDate : nil
+    private func addChild() {
+        Patient.makeDefault(in: context)
         PersistenceController.shared.save(context)
     }
 
@@ -147,8 +131,35 @@ struct SettingsView: View {
     }
 }
 
+/// Name, colour dot and a one-line summary, so the list of children reads at a
+/// glance rather than as a row of identical names.
+private struct ChildRow: View {
+    @ObservedObject var patient: Patient
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(patient.id.map(MedColor.forPatient) ?? MedColor.fallback.color)
+                .frame(width: 12, height: 12)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(patient.displayName)
+                Text(summary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var summary: String {
+        let count = patient.activeMedications.count
+        return count == 1
+            ? String(localized: "1 medication")
+            : String(localized: "\(count) medications")
+    }
+}
+
 #Preview {
-    let controller = PersistenceController.preview
-    return SettingsView(patient: Patient.fetchOrCreate(in: controller.viewContext))
-        .environment(\.managedObjectContext, controller.viewContext)
+    SettingsView()
+        .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }

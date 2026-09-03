@@ -5,21 +5,24 @@ import SwiftUI
 /// effect, a doctor's visit. Shared like the rest of the plan, so whoever takes
 /// over already knows what happened.
 struct EventListView: View {
-    @ObservedObject var patient: Patient
-
     @Environment(\.managedObjectContext) private var context
 
-    @FetchRequest private var events: FetchedResults<CareEvent>
-    @State private var creating = false
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\Patient.createdAt, order: .forward)],
+        animation: .default
+    )
+    private var patients: FetchedResults<Patient>
 
-    init(patient: Patient) {
-        self.patient = patient
-        _events = FetchRequest(
-            sortDescriptors: [SortDescriptor(\CareEvent.timestamp, order: .reverse)],
-            predicate: NSPredicate(format: "patient == %@", patient),
-            animation: .default
-        )
-    }
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\CareEvent.timestamp, order: .reverse)],
+        animation: .default
+    )
+    private var events: FetchedResults<CareEvent>
+
+    @State private var choosingChild = false
+    @State private var newEventChild: Patient?
+
+    private var showsChildNames: Bool { patients.count > 1 }
 
     var body: some View {
         NavigationStack {
@@ -30,8 +33,9 @@ struct EventListView: View {
                     } description: {
                         Text("Record a fever, a side effect or a doctor's visit so everyone stays in the picture.")
                     } actions: {
-                        Button("Log an event") { creating = true }
+                        Button("Log an event", action: startCreating)
                             .buttonStyle(.borderedProminent)
+                            .disabled(patients.isEmpty)
                     }
                     .listRowBackground(Color.clear)
                 }
@@ -39,10 +43,12 @@ struct EventListView: View {
                 ForEach(groupedEvents, id: \.day) { group in
                     Section {
                         ForEach(group.events, id: \.objectID) { event in
-                            NavigationLink {
-                                EventEditView(patient: patient, event: event, defaultDate: event.timestamp ?? Date())
-                            } label: {
-                                EventRow(event: event)
+                            if let owner = event.patient {
+                                NavigationLink {
+                                    EventEditView(patient: owner, event: event, defaultDate: event.timestamp ?? Date())
+                                } label: {
+                                    EventRow(event: event, showsChildName: showsChildNames)
+                                }
                             }
                         }
                         .onDelete { offsets in delete(offsets, in: group.events) }
@@ -55,14 +61,29 @@ struct EventListView: View {
             .navigationTitle("Events")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { creating = true } label: {
+                    Button(action: startCreating) {
                         Label("Log an event", systemImage: "plus")
                     }
+                    .disabled(patients.isEmpty)
                 }
             }
-            .sheet(isPresented: $creating) {
-                EventEditView(patient: patient, event: nil, defaultDate: Date())
+            .confirmationDialog("For which child?", isPresented: $choosingChild, titleVisibility: .visible) {
+                ForEach(patients, id: \.objectID) { child in
+                    Button(child.displayName) { newEventChild = child }
+                }
+                Button("Cancel", role: .cancel) {}
             }
+            .sheet(item: $newEventChild) { child in
+                EventEditView(patient: child, event: nil, defaultDate: Date())
+            }
+        }
+    }
+
+    private func startCreating() {
+        if patients.count == 1 {
+            newEventChild = patients.first
+        } else if patients.count > 1 {
+            choosingChild = true
         }
     }
 
@@ -84,6 +105,7 @@ struct EventListView: View {
 
 struct EventRow: View {
     @ObservedObject var event: CareEvent
+    var showsChildName: Bool = false
 
     var body: some View {
         HStack(spacing: 12) {
@@ -93,6 +115,12 @@ struct EventRow: View {
                 .frame(width: 30)
 
             VStack(alignment: .leading, spacing: 2) {
+                if showsChildName, let owner = event.patient, let id = owner.id {
+                    Text(owner.displayName)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(MedColor.forPatient(id))
+                        .textCase(.uppercase)
+                }
                 HStack(spacing: 6) {
                     Text(event.displayTitle).font(.body.weight(.medium))
                     if let measurement = event.measurementDescription {
@@ -127,7 +155,6 @@ struct EventRow: View {
 }
 
 #Preview {
-    let controller = PersistenceController.preview
-    return EventListView(patient: Patient.fetchOrCreate(in: controller.viewContext))
-        .environment(\.managedObjectContext, controller.viewContext)
+    EventListView()
+        .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }

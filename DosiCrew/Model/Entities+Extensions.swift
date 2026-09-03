@@ -43,10 +43,11 @@ extension Patient {
         return patient
     }
 
-    /// The single patient the app organises around, created on first launch.
-    /// Sharing hangs off this object, so every device must converge on the same
-    /// one: if two devices happened to create one before the first sync, the
-    /// older record wins and the UI keeps using it.
+    /// The oldest patient, creating one if the app has never been used.
+    ///
+    /// Several children are supported — each is its own share root, so one can
+    /// be shared with the childminder and another only with a grandparent. This
+    /// helper exists for first launch and for previews, not as "the" patient.
     static func fetchOrCreate(in context: NSManagedObjectContext) -> Patient {
         let request = NSFetchRequest<Patient>(entityName: "Patient")
         request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
@@ -120,6 +121,8 @@ extension Medication {
         MedicationSnapshot(
             id: id ?? UUID(),
             name: displayName,
+            patientID: patient?.id ?? UUID(),
+            patientName: patient?.displayName ?? "",
             doseAmount: doseAmount,
             doseUnit: (doseUnit ?? "").trimmingCharacters(in: .whitespaces),
             form: formEnum,

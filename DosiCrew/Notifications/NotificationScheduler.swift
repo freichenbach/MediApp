@@ -100,7 +100,7 @@ actor NotificationScheduler {
         for slot in slots {
             guard let medication = plan.medications.first(where: { $0.id == slot.medicationID }) else { continue }
             guard !plan.isHandled(slot) else { continue }
-            requests.append(contentsOf: Self.requests(for: slot, medication: medication, patientName: plan.patientName))
+            requests.append(contentsOf: Self.requests(for: slot, medication: medication))
         }
 
         center.removeAllPendingNotificationRequests()
@@ -134,14 +134,13 @@ actor NotificationScheduler {
 
     private static func requests(
         for slot: PlannedSlot,
-        medication: MedicationSnapshot,
-        patientName: String
+        medication: MedicationSnapshot
     ) -> [UNNotificationRequest] {
         var result: [UNNotificationRequest] = []
 
         let content = UNMutableNotificationContent()
         content.title = medication.name
-        content.body = body(for: medication, patientName: patientName)
+        content.body = body(for: medication)
         content.sound = .default
         content.categoryIdentifier = categoryIdentifier
         content.userInfo = userInfo(medicationID: medication.id, scheduledAt: slot.scheduledAt)
@@ -190,12 +189,17 @@ actor NotificationScheduler {
         return result
     }
 
-    private static func body(for medication: MedicationSnapshot, patientName: String) -> String {
+    /// Names the child. With more than one child on the plan, "5 ml due" would
+    /// be an invitation to dose the wrong one.
+    private static func body(for medication: MedicationSnapshot) -> String {
+        let name = medication.patientName.isEmpty
+            ? String(localized: "your child")
+            : medication.patientName
         let dose = Medication.doseDescription(amount: medication.doseAmount, unit: medication.doseUnit)
         if dose.isEmpty {
-            return String(localized: "Dose due for \(patientName).")
+            return String(localized: "Dose due for \(name).")
         }
-        return String(localized: "\(dose) due for \(patientName).")
+        return String(localized: "\(dose) due for \(name).")
     }
 
     static func identifier(prefix: String, medicationID: UUID, scheduledAt: Date) -> String {
@@ -214,7 +218,6 @@ actor NotificationScheduler {
     struct PlanData {
         var medications: [MedicationSnapshot]
         var handledSlots: Set<String>
-        var patientName: String
 
         func isHandled(_ slot: PlannedSlot) -> Bool {
             handledSlots.contains(PlanData.key(medicationID: slot.medicationID, scheduledAt: slot.scheduledAt))
@@ -233,11 +236,7 @@ actor NotificationScheduler {
         return await withCheckedContinuation { continuation in
             let context = container.newBackgroundContext()
             context.perform {
-                let patientRequest = NSFetchRequest<Patient>(entityName: "Patient")
-                patientRequest.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
-                patientRequest.fetchLimit = 1
-                let patient = (try? context.fetch(patientRequest))?.first
-
+                // Every child's medications, not just the first patient's.
                 let medicationRequest = NSFetchRequest<Medication>(entityName: "Medication")
                 medicationRequest.predicate = NSPredicate(format: "isArchived == NO")
                 let medications = ((try? context.fetch(medicationRequest)) ?? []).map { $0.snapshot() }
@@ -258,11 +257,7 @@ actor NotificationScheduler {
                 })
 
                 continuation.resume(
-                    returning: PlanData(
-                        medications: medications,
-                        handledSlots: handled,
-                        patientName: patient?.displayName ?? String(localized: "your child")
-                    )
+                    returning: PlanData(medications: medications, handledSlots: handled)
                 )
             }
         }

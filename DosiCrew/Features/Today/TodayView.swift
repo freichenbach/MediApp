@@ -4,7 +4,13 @@ import SwiftUI
 /// The screen the app exists for: what is due today, what has already been
 /// given, and by whom.
 struct TodayView: View {
-    @ObservedObject var patient: Patient
+    @Environment(\.managedObjectContext) private var context
+
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\Patient.createdAt, order: .forward)],
+        animation: .default
+    )
+    private var patients: FetchedResults<Patient>
 
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
     @State private var extraDoseMedication: Medication?
@@ -15,7 +21,6 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             DayPlanList(
-                patient: patient,
                 date: selectedDate,
                 onLogExtraDose: { extraDoseMedication = $0 }
             )
@@ -30,14 +35,21 @@ struct TodayView: View {
                         } label: {
                             Label("Log an event", systemImage: "exclamationmark.bubble")
                         }
+                        .disabled(patients.isEmpty)
                         Menu {
-                            ForEach(patient.activeMedications, id: \.objectID) { medication in
-                                Button(medication.displayName) { extraDoseMedication = medication }
+                            ForEach(patients, id: \.objectID) { child in
+                                if !child.activeMedications.isEmpty {
+                                    Section(child.displayName) {
+                                        ForEach(child.activeMedications, id: \.objectID) { medication in
+                                            Button(medication.displayName) { extraDoseMedication = medication }
+                                        }
+                                    }
+                                }
                             }
                         } label: {
                             Label("Log an extra dose", systemImage: "plus.circle")
                         }
-                        .disabled(patient.activeMedications.isEmpty)
+                        .disabled(patients.allSatisfy { $0.activeMedications.isEmpty })
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -47,7 +59,9 @@ struct TodayView: View {
                 ExtraDoseSheet(medication: medication, day: selectedDate)
             }
             .sheet(isPresented: $showingEventEditor) {
-                EventEditView(patient: patient, event: nil, defaultDate: selectedDate)
+                if let first = patients.first {
+                    EventEditView(patient: first, event: nil, defaultDate: selectedDate)
+                }
             }
         }
     }
@@ -103,18 +117,22 @@ struct TodayView: View {
 /// Split out so the fetch requests can be built from `date` in `init` — a
 /// `@FetchRequest` predicate cannot depend on a `@State` of the same view.
 private struct DayPlanList: View {
-    @ObservedObject var patient: Patient
     let date: Date
     var onLogExtraDose: (Medication) -> Void
 
     @Environment(\.managedObjectContext) private var context
     @AppStorage(AppSettings.personNameKey) private var personName: String = ""
 
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\Patient.createdAt, order: .forward)],
+        animation: .default
+    )
+    private var patients: FetchedResults<Patient>
+
     @FetchRequest private var logs: FetchedResults<DoseLog>
     @FetchRequest private var events: FetchedResults<CareEvent>
 
-    init(patient: Patient, date: Date, onLogExtraDose: @escaping (Medication) -> Void) {
-        self.patient = patient
+    init(date: Date, onLogExtraDose: @escaping (Medication) -> Void) {
         self.date = date
         self.onLogExtraDose = onLogExtraDose
 
@@ -122,14 +140,14 @@ private struct DayPlanList: View {
         let start = calendar.startOfDay(for: date)
         let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start
 
+        // Across all children: the day is read as one list, so the fetch is not
+        // scoped to a single patient.
+        //
         // A log belongs to this day either through the slot it answers or,
         // for an unplanned dose, through when it was given.
-        let logPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "medication.patient == %@", patient),
-            NSCompoundPredicate(orPredicateWithSubpredicates: [
-                NSPredicate(format: "scheduledAt >= %@ AND scheduledAt < %@", start as NSDate, end as NSDate),
-                NSPredicate(format: "scheduledAt == nil AND takenAt >= %@ AND takenAt < %@", start as NSDate, end as NSDate)
-            ])
+        let logPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
+            NSPredicate(format: "scheduledAt >= %@ AND scheduledAt < %@", start as NSDate, end as NSDate),
+            NSPredicate(format: "scheduledAt == nil AND takenAt >= %@ AND takenAt < %@", start as NSDate, end as NSDate)
         ])
         _logs = FetchRequest(
             sortDescriptors: [SortDescriptor(\DoseLog.takenAt, order: .forward)],
@@ -140,16 +158,20 @@ private struct DayPlanList: View {
         _events = FetchRequest(
             sortDescriptors: [SortDescriptor(\CareEvent.timestamp, order: .forward)],
             predicate: NSPredicate(
-                format: "patient == %@ AND timestamp >= %@ AND timestamp < %@",
-                patient, start as NSDate, end as NSDate
+                format: "timestamp >= %@ AND timestamp < %@",
+                start as NSDate, end as NSDate
             ),
             animation: .default
         )
     }
 
+    /// With one child on the plan, naming them in every row is noise. With
+    /// several it is the difference between the right and the wrong child.
+    private var showsChildNames: Bool { patients.count > 1 }
+
     private var plan: DayPlan {
         ScheduleEngine.dayPlan(
-            medications: patient.activeMedications.map { $0.snapshot() },
+            medications: patients.flatMap(\.activeMedications).map { $0.snapshot() },
             logs: logs.compactMap { $0.snapshot() },
             on: date
         )
@@ -157,7 +179,7 @@ private struct DayPlanList: View {
 
     private var medicationsByID: [UUID: Medication] {
         Dictionary(
-            patient.sortedMedications.compactMap { medication in medication.id.map { ($0, medication) } },
+            patients.flatMap(\.sortedMedications).compactMap { medication in medication.id.map { ($0, medication) } },
             uniquingKeysWith: { first, _ in first }
         )
     }
@@ -187,6 +209,7 @@ private struct DayPlanList: View {
                             DoseSlotRow(
                                 slot: slot,
                                 medication: lookup[slot.medication.id],
+                                showsChildName: showsChildNames,
                                 onSetStatus: { status in apply(status, to: slot, medication: lookup[slot.medication.id]) },
                                 onClear: { clearLogs(of: slot) }
                             )
@@ -200,7 +223,7 @@ private struct DayPlanList: View {
             if !plan.extras.isEmpty {
                 Section {
                     ForEach(plan.extras) { extra in
-                        ExtraDoseRow(extra: extra) { deleteLog(id: extra.log.id) }
+                        ExtraDoseRow(extra: extra, showsChildName: showsChildNames) { deleteLog(id: extra.log.id) }
                     }
                 } header: {
                     Label("Extra doses", systemImage: "plus.circle")
@@ -210,10 +233,12 @@ private struct DayPlanList: View {
             if !events.isEmpty {
                 Section {
                     ForEach(events, id: \.objectID) { event in
-                        NavigationLink {
-                            EventEditView(patient: patient, event: event, defaultDate: date)
-                        } label: {
-                            EventRow(event: event)
+                        if let owner = event.patient {
+                            NavigationLink {
+                                EventEditView(patient: owner, event: event, defaultDate: date)
+                            } label: {
+                                EventRow(event: event, showsChildName: showsChildNames)
+                            }
                         }
                     }
                 } header: {
@@ -230,7 +255,7 @@ private struct DayPlanList: View {
         } description: {
             Text("No doses are scheduled for this day.")
         } actions: {
-            if patient.activeMedications.isEmpty {
+            if patients.allSatisfy({ $0.activeMedications.isEmpty }) {
                 Text("Add a medication under the Medications tab to get started.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -299,7 +324,6 @@ private struct DayPlanList: View {
 }
 
 #Preview {
-    let controller = PersistenceController.preview
-    return TodayView(patient: Patient.fetchOrCreate(in: controller.viewContext))
-        .environment(\.managedObjectContext, controller.viewContext)
+    TodayView()
+        .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }

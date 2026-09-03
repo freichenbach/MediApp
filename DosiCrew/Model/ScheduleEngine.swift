@@ -34,6 +34,10 @@ struct ScheduleRuleSnapshot: Equatable, Hashable {
 struct MedicationSnapshot: Equatable, Hashable, Identifiable {
     var id: UUID
     var name: String
+    /// Which child this belongs to. Carried through the engine so a slot can
+    /// always say whose dose it is — on screen and in a notification.
+    var patientID: UUID
+    var patientName: String
     var doseAmount: Double
     var doseUnit: String
     var form: MedicationForm
@@ -47,6 +51,8 @@ struct MedicationSnapshot: Equatable, Hashable, Identifiable {
     init(
         id: UUID,
         name: String,
+        patientID: UUID = UUID(),
+        patientName: String = "",
         doseAmount: Double = 0,
         doseUnit: String = "",
         form: MedicationForm = .tablet,
@@ -59,6 +65,8 @@ struct MedicationSnapshot: Equatable, Hashable, Identifiable {
     ) {
         self.id = id
         self.name = name
+        self.patientID = patientID
+        self.patientName = patientName
         self.doseAmount = doseAmount
         self.doseUnit = doseUnit
         self.form = form
@@ -157,6 +165,21 @@ struct DayPlan {
 
     var openCount: Int { slots.filter { !$0.isDone }.count }
     var duplicateCount: Int { slots.filter(\.isDuplicate).count }
+
+    /// The children appearing in this plan, in the order their first dose is
+    /// due. Used to decide whether a row needs to name its child at all: with a
+    /// single child the name is noise, with several it is the whole point.
+    var patients: [(id: UUID, name: String)] {
+        var seen = Set<UUID>()
+        var result: [(id: UUID, name: String)] = []
+        for slot in slots where seen.insert(slot.medication.patientID).inserted {
+            result.append((slot.medication.patientID, slot.medication.patientName))
+        }
+        for extra in extras where seen.insert(extra.medication.patientID).inserted {
+            result.append((extra.medication.patientID, extra.medication.patientName))
+        }
+        return result
+    }
 }
 
 // MARK: - Engine

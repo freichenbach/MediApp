@@ -25,21 +25,21 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if let patient = patients.first {
+            if !patients.isEmpty {
                 TabView(selection: $selection) {
-                    TodayView(patient: patient)
+                    TodayView()
                         .tabItem { Label("Today", systemImage: "checklist") }
                         .tag(Tab.today)
 
-                    MedicationListView(patient: patient)
+                    MedicationListView()
                         .tabItem { Label("Medications", systemImage: "pills.fill") }
                         .tag(Tab.medications)
 
-                    EventListView(patient: patient)
+                    EventListView()
                         .tabItem { Label("Events", systemImage: "calendar.badge.exclamationmark") }
                         .tag(Tab.events)
 
-                    SettingsView(patient: patient)
+                    SettingsView()
                         .tabItem { Label("Settings", systemImage: "gearshape.fill") }
                         .tag(Tab.settings)
                 }
@@ -66,9 +66,9 @@ struct RootView: View {
         }
     }
 
-    /// The first launch on a device with no shared plan creates the patient. A
-    /// device that later accepts an invitation will simply see a second one and
-    /// the user can delete the empty local plan in Settings.
+    /// The first launch on a device with no shared plan creates one child.
+    /// Further children are added in Settings; a device that later accepts an
+    /// invitation simply sees another one appear.
     private func ensurePatientExists() {
         guard patients.isEmpty else { return }
         Patient.makeDefault(in: context)

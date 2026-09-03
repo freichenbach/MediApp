@@ -2,39 +2,61 @@ import CoreData
 import SwiftUI
 
 struct MedicationListView: View {
-    @ObservedObject var patient: Patient
-
     @Environment(\.managedObjectContext) private var context
-    @State private var editing: Medication?
 
-    private var active: [Medication] { patient.sortedMedications.filter { !$0.isArchived } }
-    private var archived: [Medication] { patient.sortedMedications.filter(\.isArchived) }
+    @FetchRequest(
+        sortDescriptors: [SortDescriptor(\Patient.createdAt, order: .forward)],
+        animation: .default
+    )
+    private var patients: FetchedResults<Patient>
+
+    @State private var editing: Medication?
+    @State private var choosingChild = false
+
+    private var allMedications: [Medication] { patients.flatMap(\.sortedMedications) }
+    private var archived: [Medication] { allMedications.filter(\.isArchived) }
 
     var body: some View {
         NavigationStack {
             List {
-                if active.isEmpty {
+                if patients.isEmpty {
+                    ContentUnavailableView {
+                        Label("No children yet", systemImage: "person.2")
+                    } description: {
+                        Text("Add a child first, then their medications.")
+                    }
+                    .listRowBackground(Color.clear)
+                } else if allMedications.allSatisfy(\.isArchived) {
                     ContentUnavailableView {
                         Label("No medications yet", systemImage: "pills")
                     } description: {
                         Text("Add a medication with its dose and schedule, and it will show up on the Today screen.")
                     } actions: {
-                        Button("Add medication", action: addMedication)
+                        Button("Add medication", action: startAdding)
                             .buttonStyle(.borderedProminent)
                     }
                     .listRowBackground(Color.clear)
                 }
 
-                ForEach(active, id: \.objectID) { medication in
-                    Button { editing = medication } label: {
-                        MedicationRow(medication: medication)
-                    }
-                    .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
-                        Button { archive(medication) } label: {
-                            Label("Archive", systemImage: "archivebox")
+                ForEach(patients, id: \.objectID) { child in
+                    let medications = child.activeMedications
+                    if !medications.isEmpty {
+                        Section {
+                            ForEach(medications, id: \.objectID) { medication in
+                                Button { editing = medication } label: {
+                                    MedicationRow(medication: medication)
+                                }
+                                .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing) {
+                                    Button { archive(medication) } label: {
+                                        Label("Archive", systemImage: "archivebox")
+                                    }
+                                    .tint(.orange)
+                                }
+                            }
+                        } header: {
+                            Text(child.displayName)
                         }
-                        .tint(.orange)
                     }
                 }
 
@@ -65,21 +87,38 @@ struct MedicationListView: View {
             .navigationTitle("Medications")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: addMedication) {
+                    Button(action: startAdding) {
                         Label("Add medication", systemImage: "plus")
                     }
+                    .disabled(patients.isEmpty)
                 }
             }
             .sheet(item: $editing, onDismiss: discardUnsavedChanges) { medication in
                 MedicationEditView(medication: medication)
+            }
+            .confirmationDialog("For which child?", isPresented: $choosingChild, titleVisibility: .visible) {
+                ForEach(patients, id: \.objectID) { child in
+                    Button(child.displayName) { addMedication(to: child) }
+                }
+                Button("Cancel", role: .cancel) {}
             }
         }
     }
 
     // MARK: Actions
 
-    private func addMedication() {
-        let medication = Medication.make(in: context, patient: patient)
+    /// With a single child there is nothing to ask; with several, guessing
+    /// would be the wrong kind of convenience.
+    private func startAdding() {
+        if patients.count == 1, let only = patients.first {
+            addMedication(to: only)
+        } else if patients.count > 1 {
+            choosingChild = true
+        }
+    }
+
+    private func addMedication(to child: Patient) {
+        let medication = Medication.make(in: context, patient: child)
         ScheduleRule.make(in: context, medication: medication)
         editing = medication
     }
@@ -184,7 +223,6 @@ enum ScheduleSummary {
 }
 
 #Preview {
-    let controller = PersistenceController.preview
-    return MedicationListView(patient: Patient.fetchOrCreate(in: controller.viewContext))
-        .environment(\.managedObjectContext, controller.viewContext)
+    MedicationListView()
+        .environment(\.managedObjectContext, PersistenceController.preview.viewContext)
 }

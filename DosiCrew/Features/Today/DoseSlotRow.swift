@@ -5,6 +5,9 @@ import SwiftUI
 struct DoseSlotRow: View {
     let slot: DaySlot
     let medication: Medication?
+    /// Only true when more than one child is on the plan. Then the name is the
+    /// most important word in the row.
+    var showsChildName: Bool = false
     var onSetStatus: (DoseStatus) -> Void
     var onClear: () -> Void
 
@@ -17,6 +20,13 @@ struct DoseSlotRow: View {
             marker
 
             VStack(alignment: .leading, spacing: 3) {
+                if showsChildName {
+                    Text(slot.medication.patientName)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(childTint)
+                        .textCase(.uppercase)
+                }
+
                 Text(slot.medication.name)
                     .font(.body.weight(.medium))
                     .strikethrough(slot.status == .skipped || slot.status == .refused, color: .secondary)
@@ -99,6 +109,13 @@ struct DoseSlotRow: View {
 
     private var tint: Color {
         Color(hex: slot.medication.colorHex) ?? MedColor.fallback.color
+    }
+
+    /// Derived from the child's identifier, not the medication's colour: two
+    /// children may well take the same medicine, and the row has to separate
+    /// them, not merge them.
+    private var childTint: Color {
+        MedColor.forPatient(slot.medication.patientID)
     }
 
     private var marker: some View {
@@ -187,6 +204,7 @@ struct DoseSlotRow: View {
 /// or logged after the schedule changed.
 struct ExtraDoseRow: View {
     let extra: ExtraDose
+    var showsChildName: Bool = false
     var onDelete: () -> Void
 
     var body: some View {
@@ -196,6 +214,12 @@ struct ExtraDoseRow: View {
                 .frame(width: 26)
 
             VStack(alignment: .leading, spacing: 2) {
+                if showsChildName {
+                    Text(extra.medication.patientName)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(MedColor.forPatient(extra.medication.patientID))
+                        .textCase(.uppercase)
+                }
                 Text(extra.medication.name).font(.body.weight(.medium))
                 Text(detail).font(.caption).foregroundStyle(.secondary)
                 if let note = extra.log.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {

@@ -382,6 +382,23 @@ extension PersistenceController {
         fever.measurementValue = 38.9
         fever.measurementUnit = "°C"
         fever.personName = "Mama"
+
+        // A second child, so previews and screenshots show what the app looks
+        // like when two plans run side by side — the case where naming the
+        // child in every row stops being decoration.
+        let sibling = Patient.makeDefault(in: context)
+        sibling.name = "Ben"
+        sibling.birthDate = calendar.date(byAdding: .year, value: -3, to: today)
+        sibling.colorHex = MedColor.purple.rawValue
+
+        let drops = Medication.make(in: context, patient: sibling)
+        drops.name = "Nasentropfen"
+        drops.formEnum = .drops
+        drops.doseAmount = 2
+        drops.doseUnit = "drops"
+        drops.colorHex = MedColor.orange.rawValue
+        let dropsRule = ScheduleRule.make(in: context, medication: drops)
+        dropsRule.minutes = [8 * 60, 20 * 60]
     }
 
     /// In-memory stack with the demo plan — used by SwiftUI previews so they
