@@ -300,6 +300,45 @@ final class PersistenceController {
         return "\n\(rule)\n\(body)\n\(rule)\n"
     }
 
+    // MARK: - Background work
+
+    /// True when at least one store is actually open.
+    ///
+    /// Core Data answers a context whose coordinator has no stores with an
+    /// Objective-C exception, not a Swift error — so it cannot be caught, and
+    /// the app is killed instead of returning a failure. Every path that may
+    /// run before the stack is up, or after it failed to come up, has to ask
+    /// first.
+    var isStoreLoaded: Bool {
+        !container.persistentStoreCoordinator.persistentStores.isEmpty
+    }
+
+    /// Runs `work` on a background context, or returns `nil` when no store is
+    /// open.
+    ///
+    /// The reason this exists rather than each caller building its own context:
+    /// the paths that need one are exactly the paths that can run at the worst
+    /// moment — a reminder tapped on the lock screen, a silent push waking the
+    /// app — where "the stack is up" is an assumption and not a fact.
+    @discardableResult
+    func withBackgroundContext<T>(
+        author: String? = nil,
+        _ work: @escaping (NSManagedObjectContext) -> T
+    ) async -> T? {
+        guard isStoreLoaded else {
+            Self.logger.error("Background work skipped: no persistent store is loaded")
+            return nil
+        }
+        return await withCheckedContinuation { (continuation: CheckedContinuation<T?, Never>) in
+            let context = container.newBackgroundContext()
+            context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
+            if let author { context.transactionAuthor = author }
+            context.perform {
+                continuation.resume(returning: work(context))
+            }
+        }
+    }
+
     // MARK: - Saving
 
     /// Saves and reports failure rather than trapping: a dropped save on a
