@@ -201,29 +201,41 @@ struct SettingsView: View {
     }
 
     private func load() {
-        Task {
-            let settings = await UNUserNotificationCenter.current().notificationSettings()
-            await MainActor.run {
-                authorizationStatus = settings.authorizationStatus
-                timeSensitiveSetting = settings.timeSensitiveSetting
-                criticalAlertSetting = settings.criticalAlertSetting
-                notificationSettingsLoaded = true
-            }
+        Task { await refreshNotificationSettings() }
+    }
+
+    private func refreshNotificationSettings() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        await MainActor.run {
+            authorizationStatus = settings.authorizationStatus
+            timeSensitiveSetting = settings.timeSensitiveSetting
+            criticalAlertSetting = settings.criticalAlertSetting
+            notificationSettingsLoaded = true
         }
     }
 
-    /// Worth one tap before telling somebody to reinstall the app.
+    /// Asks iOS for the critical-alert permission after the fact.
     ///
-    /// iOS will almost certainly not ask — permission already granted means no
-    /// prompt, whatever new option is named. But "almost certainly" is not
-    /// certainly, the attempt costs nothing, and the alternative on offer is
-    /// deleting the app. If nothing changes, the line above says so plainly
-    /// rather than leaving the button to be pressed again.
+    /// This works, which is worth writing down because the obvious reading of
+    /// Apple's rule says it should not: iOS asks about notifications once, and
+    /// an app that already has permission gets no second dialog. That holds for
+    /// the options it has already asked about. Naming an option it never could
+    /// — critical alerts, before Apple granted the entitlement — does bring up
+    /// a prompt, and answering it turns the switch on. Confirmed on a device
+    /// that had granted permission several builds earlier.
+    ///
+    /// So this is the first thing to try, not the last resort it was written
+    /// as. Deleting and reinstalling the app remains the fallback, and the line
+    /// above only offers it once this has actually been tried and changed
+    /// nothing.
     private func askForCriticalAlerts() {
         Task {
             await NotificationScheduler.shared.requestAuthorization()
+            // The refresh comes first: setting the flag before the new values
+            // arrive would show "iOS did not ask" for a moment in the very case
+            // where it did.
+            await refreshNotificationSettings()
             await MainActor.run { askedForCriticalAlerts = true }
-            load()
         }
     }
 

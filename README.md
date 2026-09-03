@@ -436,22 +436,35 @@ beim Namen nennt. Der Entitlement-Eintrag steht in einem eigenen Commit und ist
 damit in einem Schritt zurücknehmbar.
 
 **Was Time Sensitive nicht kann:** gegen den Stummschalter anklingeln. Das
-können nur *Critical Alerts*, und die gibt Apple einzeln frei —
-Medikamentengabe ist ein ausdrücklich zugelassener Fall. Der Code dafür liegt
-schon da und ist bis zur Freigabe unerreichbar: `requestAuthorization` fragt
-`.criticalAlert` mit an, und `criticalAlertSetting` entscheidet zur Laufzeit.
-Kommt die Freigabe, wirkt sie ohne Codeänderung — es fehlt dann nur noch
-`com.apple.developer.usernotifications.critical-alerts` in beiden
-Entitlement-Dateien. **Vorher eingetragen bricht es den Export**, also erst
-danach.
+können nur *Critical Alerts*. Apple gibt sie einzeln frei — Medikamentengabe
+ist ein ausdrücklich zugelassener Fall — und hat sie für
+`es.reichenbach.DosiCrew` am 2026-09-03 erteilt (Antrag `5BULB2V9N5`, Text
+unter [`Docs/critical-alerts-antrag.md`](Docs/critical-alerts-antrag.md)).
+`com.apple.developer.usernotifications.critical-alerts` steht seither in beiden
+Entitlement-Dateien; **vorher eingetragen bricht es den Export**, für eine
+weitere App also erst nach der Zusage.
 
-Der fertige Antragstext liegt unter [`Docs/critical-alerts-antrag.md`](Docs/critical-alerts-antrag.md),
-einzureichen unter
-<https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement>.
+Am Code war dafür nichts zu tun: `requestAuthorization` fragt `.criticalAlert`
+seit jeher mit an, `criticalAlertSetting` entscheidet zur Laufzeit.
+
+**Der Haken danach**, und er kostet sonst einen Abend: iOS fragt genau einmal
+nach Mitteilungen. Wer die Berechtigung vor dem Entitlement erteilt hat,
+bekommt keinen neuen Dialog, und iOS zeigt in seinen Einstellungen auch keinen
+Schalter für kritische Hinweise — es gibt schlicht nichts anzutippen. Die App
+meldet dann `criticalAlertSetting == .notSupported`.
+
+Auflösbar ist das aus der App heraus, und zwar entgegen der naheliegenden
+Lesart von Apples Regel: Wird `requestAuthorization` mit einer Option
+aufgerufen, die **nie zuvor angefragt werden konnte**, zeigt iOS sehr wohl
+einen Dialog — die „nur einmal"-Regel gilt für die schon gestellten Fragen. Die
+Einstellungen der App bieten dafür *„iOS erneut fragen"* an; auf einem Gerät,
+das die Berechtigung mehrere Builds früher erteilt hatte, hat das den Schalter
+erzeugt und eingeschaltet. Erst wenn das nichts ändert, bleibt das Löschen und
+Neuinstallieren der App — der Plan liegt in iCloud und kommt zurück.
 
 Was in den Einstellungen der App steht, ist jeweils der tatsächliche Zustand:
-klingelt trotz Stummschaltung, kommt nur durch den Fokus, oder zeitkritische
-Mitteilungen sind in iOS ausgeschaltet.
+klingelt trotz Stummschaltung, darf klingeln aber ist aus, nie danach gefragt
+worden, oder zeitkritische Mitteilungen sind in iOS ausgeschaltet.
 
 ### Screenshots
 
