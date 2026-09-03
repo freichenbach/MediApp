@@ -1,4 +1,3 @@
-import CoreData
 import Foundation
 import UserNotifications
 
@@ -49,11 +48,15 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             // set afterwards can take seconds, and iOS terminates an app that
             // keeps it waiting on a notification response. So that part runs
             // detached.
-            await markGiven(medicationID: medicationID, scheduledAt: scheduledAt)
+            await DoseBook.recordGiven(
+                medicationID: medicationID,
+                scheduledAt: scheduledAt,
+                author: "notification"
+            )
             Task.detached { await NotificationScheduler.shared.reschedule() }
 
         case NotificationScheduler.snoozeAction:
-            let name = await medicationName(for: medicationID)
+            let name = await DoseBook.medicationName(for: medicationID)
                 ?? response.notification.request.content.title
             await NotificationScheduler.shared.snooze(
                 medicationID: medicationID,
@@ -68,57 +71,4 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    // MARK: - Writing the log
-
-    /// Writes on a background context: the app may not even be in the
-    /// foreground when the action is tapped.
-    ///
-    /// Everything goes through `withBackgroundContext`, which refuses to run at
-    /// all when no store is open — this path fires at the one moment when that
-    /// is a real possibility, a reminder answered while the app is cold.
-    private func markGiven(medicationID: UUID, scheduledAt: Date) async {
-        let personName = AppSettings.personName
-        let persistence = PersistenceController.shared
-
-        await persistence.withBackgroundContext(author: "notification") { context in
-            let request = NSFetchRequest<Medication>(entityName: "Medication")
-            request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
-            request.fetchLimit = 1
-            guard let medication = (try? context.fetch(request))?.first else { return }
-
-            // Somebody may have ticked this slot off in the meantime — from
-            // another device, or from the app itself. Do not log it twice.
-            let existing = NSFetchRequest<DoseLog>(entityName: "DoseLog")
-            existing.predicate = NSPredicate(
-                format: "medication == %@ AND scheduledAt >= %@ AND scheduledAt <= %@",
-                medication,
-                scheduledAt.addingTimeInterval(-ScheduleEngine.slotMatchTolerance) as NSDate,
-                scheduledAt.addingTimeInterval(ScheduleEngine.slotMatchTolerance) as NSDate
-            )
-            existing.fetchLimit = 1
-            guard ((try? context.fetch(existing))?.first) == nil else { return }
-
-            DoseLog.make(
-                in: context,
-                medication: medication,
-                scheduledAt: scheduledAt,
-                status: .given,
-                personName: personName
-            )
-
-            // Through the controller, not `try context.save()`: only the
-            // controller refuses a save into a coordinator without stores, and
-            // Core Data answers that case with an exception Swift cannot catch.
-            persistence.save(context)
-        }
-    }
-
-    private func medicationName(for medicationID: UUID) async -> String? {
-        await PersistenceController.shared.withBackgroundContext { context -> String? in
-            let request = NSFetchRequest<Medication>(entityName: "Medication")
-            request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
-            request.fetchLimit = 1
-            return (try? context.fetch(request))?.first?.displayName
-        } ?? nil
-    }
 }

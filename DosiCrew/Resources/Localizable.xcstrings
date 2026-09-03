@@ -1,6 +1,52 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%1$@ for %2$@ at %3$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ für %2$@ um %3$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ for %2$@ at %3$@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ para %2$@ a las %3$@."
+          }
+        }
+      }
+    },
+    "%1$@ for %2$@ on %3$@ at %4$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ für %2$@ am %3$@ um %4$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ for %2$@ on %3$@ at %4$@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ para %2$@ el %3$@ a las %4$@."
+          }
+        }
+      }
+    },
     "%@ due for %@.": {
       "extractionState": "manual",
       "localizations": {
@@ -20,6 +66,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ para %2$@."
+          }
+        }
+      }
+    },
+    "%@ is not in the plan any more.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ steht nicht mehr im Plan."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is not in the plan any more."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ya no está en el plan."
+          }
+        }
+      }
+    },
+    "%@ is not scheduled for today.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist für heute nicht geplant."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is not scheduled for today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no está programado para hoy."
           }
         }
       }
@@ -415,6 +507,29 @@
         }
       }
     },
+    "Asks when the next medication is due.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fragt, wann die nächste Gabe fällig ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asks when the next medication is due."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pregunta cuándo toca la próxima toma."
+          }
+        }
+      }
+    },
     "Born": {
       "extractionState": "manual",
       "localizations": {
@@ -503,6 +618,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Categoría"
+          }
+        }
+      }
+    },
+    "Child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niño"
           }
         }
       }
@@ -1036,6 +1174,29 @@
         }
       }
     },
+    "Every %@ dose for today is already ticked off.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle heutigen Gaben von %@ sind schon abgehakt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every %@ dose for today is already ticked off."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las tomas de %@ de hoy ya están marcadas."
+          }
+        }
+      }
+    },
     "Every %lld days": {
       "extractionState": "manual",
       "localizations": {
@@ -1469,6 +1630,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Administrado dos veces: %@"
+          }
+        }
+      }
+    },
+    "I have no medications for %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für %@ sind keine Medikamente eingetragen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have no medications for %@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay medicamentos para %@."
           }
         }
       }
@@ -2117,6 +2301,29 @@
         }
       }
     },
+    "Next dose": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächste Gabe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next dose"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Próxima toma"
+          }
+        }
+      }
+    },
     "Night": {
       "extractionState": "manual",
       "localizations": {
@@ -2389,6 +2596,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notas para quien lo administre"
+          }
+        }
+      }
+    },
+    "Nothing else is due in the next two days.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In den nächsten zwei Tagen steht nichts mehr an."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing else is due in the next two days."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay nada más en los próximos dos días."
           }
         }
       }
@@ -2761,6 +2991,29 @@
         }
       }
     },
+    "Record a dose": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gabe eintragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record a dose"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrar una toma"
+          }
+        }
+      }
+    },
     "Record a fever, a side effect or a doctor's visit so everyone stays in the picture.": {
       "extractionState": "manual",
       "localizations": {
@@ -2803,6 +3056,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registrar un valor"
+          }
+        }
+      }
+    },
+    "Recorded: %1$@ for %2$@ at %3$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eingetragen: %1$@ für %2$@ um %3$@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded: %1$@ for %2$@ at %3$@."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrado: %1$@ para %2$@ a las %3$@."
+          }
+        }
+      }
+    },
+    "Records a scheduled dose as given.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trägt eine geplante Gabe als gegeben ein."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records a scheduled dose as given."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra como administrada una toma programada."
           }
         }
       }
@@ -3313,6 +3612,29 @@
         }
       }
     },
+    "Somebody has already ticked off the %1$@ dose of %2$@. Do not give it again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Gabe um %1$@ von %2$@ ist schon abgehakt. Nicht noch einmal geben."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Somebody has already ticked off the %1$@ dose of %2$@. Do not give it again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alguien ya marcó la toma de las %1$@ de %2$@. No la administres otra vez."
+          }
+        }
+      }
+    },
     "Someone": {
       "extractionState": "manual",
       "localizations": {
@@ -3681,6 +4003,29 @@
         }
       }
     },
+    "The plan could not be opened, so nothing was recorded. Please tick it off in DosiCrew.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Plan ließ sich nicht öffnen, es wurde nichts eingetragen. Bitte in DosiCrew abhaken."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The plan could not be opened, so nothing was recorded. Please tick it off in DosiCrew."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir el plan y no se registró nada. Márcalo en DosiCrew."
+          }
+        }
+      }
+    },
     "The plan disappears from this iPhone. The others keep it.": {
       "extractionState": "manual",
       "localizations": {
@@ -3700,6 +4045,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "El plan desaparece de este iPhone. Los demás lo conservan."
+          }
+        }
+      }
+    },
+    "There are no medications in the plan yet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Plan steht noch kein Medikament."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There are no medications in the plan yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay medicamentos en el plan."
           }
         }
       }
@@ -4091,6 +4459,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cuándo"
+          }
+        }
+      }
+    },
+    "Which medication?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welches Medikament?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which medication?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué medicamento?"
           }
         }
       }

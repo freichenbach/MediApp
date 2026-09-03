@@ -1,4 +1,3 @@
-import CoreData
 import Foundation
 import UserNotifications
 
@@ -136,7 +135,7 @@ actor NotificationScheduler {
 
         let urgency = Self.urgency(for: settings)
 
-        let plan = await Self.loadPlanData()
+        let plan = await DoseBook.loadPlan(withinDays: Self.horizonInDays)
         guard !plan.medications.isEmpty else {
             center.removeAllPendingNotificationRequests()
             return
@@ -271,52 +270,4 @@ actor NotificationScheduler {
         ]
     }
 
-    // MARK: - Reading the plan
-
-    struct PlanData {
-        var medications: [MedicationSnapshot]
-        var handledSlots: Set<String>
-
-        func isHandled(_ slot: PlannedSlot) -> Bool {
-            handledSlots.contains(PlanData.key(medicationID: slot.medicationID, scheduledAt: slot.scheduledAt))
-        }
-
-        static func key(medicationID: UUID, scheduledAt: Date) -> String {
-            // Rounded to the second: Core Data and CloudKit both introduce
-            // sub-second drift, and truncation would turn 7.9999 into a miss.
-            "\(medicationID.uuidString)@\(Int(scheduledAt.timeIntervalSinceReferenceDate.rounded()))"
-        }
-    }
-
-    /// Reads on a background context so scheduling never blocks the UI.
-    ///
-    /// Returns an empty plan when no store is open — scheduling nothing is the
-    /// right answer then, and asking Core Data anyway is the wrong one.
-    private static func loadPlanData() async -> PlanData {
-        let empty = PlanData(medications: [], handledSlots: [])
-        let plan = await PersistenceController.shared.withBackgroundContext { context -> PlanData in
-            // Every child's medications, not just the first patient's.
-            let medicationRequest = NSFetchRequest<Medication>(entityName: "Medication")
-            medicationRequest.predicate = NSPredicate(format: "isArchived == NO")
-            let medications = ((try? context.fetch(medicationRequest)) ?? []).map { $0.snapshot() }
-
-            // Only slots inside the horizon can still be pending, so the log
-            // fetch is bounded rather than reading the whole history.
-            let horizonEnd = Date().addingTimeInterval(TimeInterval(horizonInDays + 1) * 86_400)
-            let logRequest = NSFetchRequest<DoseLog>(entityName: "DoseLog")
-            logRequest.predicate = NSPredicate(
-                format: "scheduledAt != nil AND scheduledAt >= %@ AND scheduledAt <= %@",
-                Date().addingTimeInterval(-86_400) as NSDate,
-                horizonEnd as NSDate
-            )
-            let logs = (try? context.fetch(logRequest)) ?? []
-            let handled = Set(logs.compactMap { log -> String? in
-                guard let medicationID = log.medication?.id, let scheduledAt = log.scheduledAt else { return nil }
-                return PlanData.key(medicationID: medicationID, scheduledAt: scheduledAt)
-            })
-
-            return PlanData(medications: medications, handledSlots: handled)
-        }
-        return plan ?? empty
-    }
 }
