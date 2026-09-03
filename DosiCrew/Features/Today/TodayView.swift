@@ -25,7 +25,8 @@ struct TodayView: View {
         NavigationStack {
             DayPlanList(
                 date: selectedDate,
-                onLogExtraDose: { extraDoseMedication = $0 }
+                onLogExtraDose: { extraDoseMedication = $0 },
+                onEditDoseTime: { editingTimeOf = $0 }
             )
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -125,6 +126,8 @@ struct TodayView: View {
 private struct DayPlanList: View {
     let date: Date
     var onLogExtraDose: (Medication) -> Void
+    /// Handed up: the sheet belongs to the screen, not to the day's list.
+    var onEditDoseTime: (DoseLog) -> Void
 
     @Environment(\.managedObjectContext) private var context
     @AppStorage(AppSettings.personNameKey) private var personName: String = ""
@@ -138,9 +141,14 @@ private struct DayPlanList: View {
     @FetchRequest private var logs: FetchedResults<DoseLog>
     @FetchRequest private var events: FetchedResults<CareEvent>
 
-    init(date: Date, onLogExtraDose: @escaping (Medication) -> Void) {
+    init(
+        date: Date,
+        onLogExtraDose: @escaping (Medication) -> Void,
+        onEditDoseTime: @escaping (DoseLog) -> Void
+    ) {
         self.date = date
         self.onLogExtraDose = onLogExtraDose
+        self.onEditDoseTime = onEditDoseTime
 
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: date)
@@ -218,7 +226,7 @@ private struct DayPlanList: View {
                                 showsChildName: showsChildNames,
                                 onSetStatus: { status in apply(status, to: slot, medication: lookup[slot.medication.id]) },
                                 onClear: { clearLogs(of: slot) },
-                                onEditTime: { editingTimeOf = resolvedLog(of: slot) }
+                                onEditTime: { if let entry = resolvedLog(of: slot) { onEditDoseTime(entry) } }
                             )
                         }
                     } header: {
@@ -234,7 +242,7 @@ private struct DayPlanList: View {
                             extra: extra,
                             showsChildName: showsChildNames,
                             onDelete: { deleteLog(id: extra.log.id) },
-                            onEditTime: { editingTimeOf = log(id: extra.log.id) }
+                            onEditTime: { if let entry = managedLog(id: extra.log.id) { onEditDoseTime(entry) } }
                         )
                     }
                 } header: {
@@ -317,10 +325,10 @@ private struct DayPlanList: View {
     /// when there is one, since that is the time the row shows.
     private func resolvedLog(of slot: DaySlot) -> DoseLog? {
         guard let id = slot.resolvedLog?.id else { return nil }
-        return log(id: id)
+        return managedLog(id: id)
     }
 
-    private func log(id: UUID) -> DoseLog? {
+    private func managedLog(id: UUID) -> DoseLog? {
         logs.first { $0.id == id }
     }
 
