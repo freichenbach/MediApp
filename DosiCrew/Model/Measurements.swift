@@ -57,27 +57,13 @@ enum SeizureType: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var label: LocalizedStringKey {
-        switch self {
-        case .typicalAbsence: return "Typical absence"
-        case .atypicalAbsence: return "Atypical absence"
-        case .myoclonicAbsence: return "Myoclonic absence"
-        case .tonicClonic: return "Tonic-clonic"
-        case .tonic: return "Tonic"
-        case .clonic: return "Clonic"
-        case .myoclonic: return "Myoclonic"
-        case .atonic: return "Atonic (drop attack)"
-        case .epilepticSpasms: return "Epileptic spasms"
-        case .focalAware: return "Focal, aware"
-        case .focalImpairedAwareness: return "Focal, impaired awareness"
-        case .focalToBilateralTonicClonic: return "Focal to bilateral tonic-clonic"
-        case .unknown: return "Other or unclear"
-        }
-    }
-
-    /// Plain text for the report, which is a PDF and cannot resolve a
-    /// `LocalizedStringKey`.
-    var plainLabel: String {
+    /// One label, already localized, as a plain `String`.
+    ///
+    /// Not a `LocalizedStringKey`: that lives in SwiftUI, and this type is read
+    /// by the report's PDF renderer as well as by the editor. A second
+    /// "plain" property beside it would be the same names twice, and the two
+    /// would eventually disagree.
+    var label: String {
         switch self {
         case .typicalAbsence: return String(localized: "Typical absence")
         case .atypicalAbsence: return String(localized: "Atypical absence")
@@ -101,11 +87,11 @@ enum SeizureType: String, CaseIterable, Identifiable {
         case generalised, focal, other
         var id: String { rawValue }
 
-        var label: LocalizedStringKey {
+        var label: String {
             switch self {
-            case .generalised: return "Generalised onset"
-            case .focal: return "Focal onset"
-            case .other: return "Other"
+            case .generalised: return String(localized: "Generalised onset")
+            case .focal: return String(localized: "Focal onset")
+            case .other: return String(localized: "Unknown onset")
             }
         }
 

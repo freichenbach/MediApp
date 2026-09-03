@@ -268,7 +268,7 @@ extension CareEvent {
         // A seizure whose duration nobody caught still carries its kind, and
         // that is the half a neurologist would rather have.
         if categoryEnum == .seizure, !hasMeasurement {
-            return SeizureType.from(code: detailCode)?.plainLabel
+            return SeizureType.from(code: detailCode)?.label
         }
         guard hasMeasurement else { return nil }
 
@@ -286,7 +286,7 @@ extension CareEvent {
         case .seizure:
             // The kind first: for a neurologist reading the diary, "atypical
             // absence" is the fact and the duration qualifies it.
-            let kind = SeizureType.from(code: detailCode)?.plainLabel
+            let kind = SeizureType.from(code: detailCode)?.label
             let duration = measurementValue > 0
                 ? SeizureDuration.description(seconds: measurementValue)
                 : nil

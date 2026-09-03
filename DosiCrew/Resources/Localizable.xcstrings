@@ -5935,6 +5935,29 @@
         }
       }
     },
+    "Unknown onset": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannter Beginn"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown onset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio desconocido"
+          }
+        }
+      }
+    },
     "Unnamed": {
       "extractionState": "manual",
       "localizations": {
