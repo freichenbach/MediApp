@@ -80,6 +80,18 @@ struct SettingsView: View {
 
 
                 Section {
+                    NavigationLink {
+                        ReportView()
+                    } label: {
+                        Label("Report for the doctor", systemImage: "doc.text")
+                    }
+                } header: {
+                    Text("Appointments")
+                } footer: {
+                    Text("A PDF of what was given and when, over the last days or weeks — the answer to the first question in the consulting room.")
+                }
+
+                Section {
                     Text("DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)

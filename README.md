@@ -584,6 +584,35 @@ der Scheduler baut die ausstehenden Mitteilungen neu auf. Geplant wird immer nur
 das nächste 48-Stunden-Fenster, weil iOS höchstens 64 ausstehende
 Benachrichtigungen pro App zulässt.
 
+## Bericht für die Ärztin
+
+Unter *Einstellungen → Arzttermine* entsteht ein PDF über die letzten 7, 14, 30
+oder 90 Tage: eine Übersicht, eine Tabelle je Medikament und der Verlauf Tag für
+Tag, dazu die eingetragenen Ereignisse. Geteilt wird es über das übliche
+iOS-Blatt, es geht also nur dorthin, wohin es geschickt wird.
+
+Zwei Entscheidungen darin sind keine Formsache, sondern der Grund, warum das
+Ding überhaupt vorzeigbar ist:
+
+**„Nicht eingetragen" ist nicht „ausgelassen".** Eine leere Zeile heißt, dass
+niemand abgehakt hat — nicht, dass die Gabe ausgefallen ist. Wer mit vollen
+Händen ein Medikament gibt und danach nicht zum Telefon greift, erzeugt genau
+diese Lücke. Beides zu verwechseln hieße, einer Ärztin eine Tatsache zu
+erfinden, über die sie womöglich ein Rezept ändert. Der Bericht trennt deshalb
+bewusst Ausgelassenes, Verweigertes und Nichteingetragenes, sagt es im Kopf
+noch einmal ausdrücklich, und die Quote rechnet nur mit dem, was jemand
+beantwortet hat.
+
+**Doppelgaben stehen ausdrücklich drin.** Wenn zwei Personen dieselbe Gabe
+abgehakt haben, hat das Kind sie zweimal bekommen. Das ist der Fehler, gegen den
+diese App gebaut ist, und ist als eigene Zeile unter der Gabe ausgewiesen, samt
+Person und Uhrzeit. Aufgefallen ist es beim Schreiben des Tests: die erste
+Fassung zählte den Zeitpunkt einmal als „gegeben" und ließ die zweite Spritze
+verschwinden.
+
+Noch nicht fällige Gaben bleiben außen vor, mit einer halben Stunde Karenz —
+sonst stünde die Gabe in zwanzig Minuten schon als Lücke im Bericht.
+
 ## Grenzen
 
 - Alle Beteiligten brauchen ein iPhone mit iCloud-Anmeldung. Kein Android, kein Web.

@@ -116,6 +116,52 @@
         }
       }
     },
+    "%@ kg": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        }
+      }
+    },
+    "%@ to %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bis %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ to %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "del %@ al %@"
+          }
+        }
+      }
+    },
     "%@ · logged by %@": {
       "extractionState": "manual",
       "localizations": {
@@ -181,6 +227,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 medicamento"
+          }
+        }
+      }
+    },
+    "A PDF of what was given and when, over the last days or weeks — the answer to the first question in the consulting room.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein PDF darüber, was wann gegeben wurde, über die letzten Tage oder Wochen — die Antwort auf die erste Frage im Sprechzimmer."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A PDF of what was given and when, over the last days or weeks — the answer to the first question in the consulting room."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un PDF de qué se dio y cuándo, en los últimos días o semanas: la respuesta a la primera pregunta en la consulta."
           }
         }
       }
@@ -415,6 +484,29 @@
         }
       }
     },
+    "Also given by %@ at %@ — the child had this dose twice.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ebenfalls gegeben von %@ um %@ — das Kind hat diese Gabe doppelt bekommen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also given by %@ at %@ — the child had this dose twice."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "También administrada por %@ a las %@: el niño recibió esta dosis dos veces."
+          }
+        }
+      }
+    },
     "Amount per dose": {
       "extractionState": "manual",
       "localizations": {
@@ -457,6 +549,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Un medicamento archivado desaparece de la pantalla Hoy, pero conserva su historial."
+          }
+        }
+      }
+    },
+    "Appointments": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arzttermine"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appointments"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Citas médicas"
           }
         }
       }
@@ -549,6 +664,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pregunta cuándo toca la próxima toma."
+          }
+        }
+      }
+    },
+    "At a glance": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf einen Blick"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "At a glance"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De un vistazo"
           }
         }
       }
@@ -760,6 +898,29 @@
         }
       }
     },
+    "Created %@ with DosiCrew": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellt am %@ mit DosiCrew"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created %@ with DosiCrew"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creado el %@ con DosiCrew"
+          }
+        }
+      }
+    },
     "Date of birth": {
       "extractionState": "manual",
       "localizations": {
@@ -779,6 +940,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fecha de nacimiento"
+          }
+        }
+      }
+    },
+    "Day by day": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag für Tag"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day by day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día a día"
           }
         }
       }
@@ -848,6 +1032,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eliminar niño"
+          }
+        }
+      }
+    },
+    "Deliberately skipped": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewusst ausgelassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deliberately skipped"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omitidas a propósito"
           }
         }
       }
@@ -967,6 +1174,52 @@
         }
       }
     },
+    "Doses due": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fällige Gaben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doses due"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosis previstas"
+          }
+        }
+      }
+    },
+    "Doses still to come are left out — only what has already fallen due can be missing.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch bevorstehende Gaben bleiben außen vor — fehlen kann nur, was schon fällig war."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doses still to come are left out — only what has already fallen due can be missing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las dosis aún pendientes quedan fuera: solo puede faltar lo que ya venció."
+          }
+        }
+      }
+    },
     "DosiCrew helps you organise who gives what and when. It does not check doses, interactions or contraindications — that stays with your doctor or pharmacist.": {
       "extractionState": "manual",
       "localizations": {
@@ -1009,6 +1262,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gotas"
+          }
+        }
+      }
+    },
+    "Due": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fällig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Due"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previstas"
           }
         }
       }
@@ -1358,6 +1634,29 @@
         }
       }
     },
+    "Extra": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zusätzlich"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extra"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicional"
+          }
+        }
+      }
+    },
     "Extra dose": {
       "extractionState": "manual",
       "localizations": {
@@ -1634,6 +1933,52 @@
         }
       }
     },
+    "Given late": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verspätet gegeben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Given late"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administradas con retraso"
+          }
+        }
+      }
+    },
+    "Given on time": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechtzeitig gegeben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Given on time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administradas a tiempo"
+          }
+        }
+      }
+    },
     "Given twice": {
       "extractionState": "manual",
       "localizations": {
@@ -1653,6 +1998,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Administrado dos veces"
+          }
+        }
+      }
+    },
+    "Given twice by two people": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von zwei Personen doppelt gegeben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Given twice by two people"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administradas dos veces por dos personas"
           }
         }
       }
@@ -1818,6 +2186,29 @@
         }
       }
     },
+    "Last %lld days": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte %lld Tage"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last %lld days"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos %lld días"
+          }
+        }
+      }
+    },
     "Last day": {
       "extractionState": "manual",
       "localizations": {
@@ -1860,6 +2251,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Última sincronización a las %@"
+          }
+        }
+      }
+    },
+    "Late": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verspätet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Late"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con retraso"
           }
         }
       }
@@ -2117,6 +2531,29 @@
         }
       }
     },
+    "Medication record": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medikamentenbericht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medication record"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registro de medicación"
+          }
+        }
+      }
+    },
     "Medications": {
       "extractionState": "manual",
       "localizations": {
@@ -2182,6 +2619,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mediodía"
+          }
+        }
+      }
+    },
+    "Missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlend"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faltantes"
           }
         }
       }
@@ -2554,6 +3014,29 @@
         }
       }
     },
+    "Not recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht eingetragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not recorded"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin registrar"
+          }
+        }
+      }
+    },
     "Not shared yet": {
       "extractionState": "manual",
       "localizations": {
@@ -2711,6 +3194,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nada planificado"
+          }
+        }
+      }
+    },
+    "Nothing was recorded in this period.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Zeitraum wurde nichts eingetragen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing was recorded in this period."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se registró nada en este periodo."
           }
         }
       }
@@ -2876,6 +3382,29 @@
         }
       }
     },
+    "Page %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página %lld"
+          }
+        }
+      }
+    },
     "People": {
       "extractionState": "manual",
       "localizations": {
@@ -2895,6 +3424,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Personas"
+          }
+        }
+      }
+    },
+    "Per medication": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je Medikament"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per medication"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por medicamento"
+          }
+        }
+      }
+    },
+    "Period": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitraum"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
           }
         }
       }
@@ -3010,6 +3585,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Día anterior"
+          }
+        }
+      }
+    },
+    "Putting it together…": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird zusammengestellt …"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Putting it together…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando…"
           }
         }
       }
@@ -3194,6 +3792,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rechazado"
+          }
+        }
+      }
+    },
+    "Refused by the child": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vom Kind verweigert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refused by the child"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechazadas por el niño"
           }
         }
       }
@@ -3428,6 +4049,29 @@
         }
       }
     },
+    "Report for the doctor": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht für die Ärztin"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report for the doctor"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informe para el médico"
+          }
+        }
+      }
+    },
     "Restore": {
       "extractionState": "manual",
       "localizations": {
@@ -3562,6 +4206,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Compartir"
+          }
+        }
+      }
+    },
+    "Share the report": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht teilen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share the report"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir el informe"
           }
         }
       }
@@ -4026,6 +4693,52 @@
         }
       }
     },
+    "That child is no longer in the plan.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Kind steht nicht mehr im Plan."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That child is no longer in the plan."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese niño ya no está en el plan."
+          }
+        }
+      }
+    },
+    "The PDF holds health data about your child. It goes only where you send it.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das PDF enthält Gesundheitsdaten Ihres Kindes. Es geht nur dorthin, wohin Sie es schicken."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The PDF holds health data about your child. It goes only where you send it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El PDF contiene datos de salud de su hijo. Solo llega adonde usted lo envíe."
+          }
+        }
+      }
+    },
     "The amount handed over at one scheduled time.": {
       "extractionState": "manual",
       "localizations": {
@@ -4164,6 +4877,29 @@
         }
       }
     },
+    "The period could not be worked out.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Zeitraum konnte nicht bestimmt werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The period could not be worked out."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo determinar el periodo."
+          }
+        }
+      }
+    },
     "The plan could not be opened, so nothing was recorded. Please tick it off in DosiCrew.": {
       "extractionState": "manual",
       "localizations": {
@@ -4210,6 +4946,29 @@
         }
       }
     },
+    "The report could not be put together. %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Bericht konnte nicht zusammengestellt werden. %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The report could not be put together. %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo preparar el informe. %@"
+          }
+        }
+      }
+    },
     "There are no medications in the plan yet.": {
       "extractionState": "manual",
       "localizations": {
@@ -4229,6 +4988,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Todavía no hay medicamentos en el plan."
+          }
+        }
+      }
+    },
+    "This lists what was recorded in the app, not what was observed. A dose shown as “not recorded” may well have been given without anybody reaching for their phone. Times come from the phone of whoever ticked the dose off. DosiCrew does not check doses, interactions or contraindications.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hier steht, was in der App eingetragen wurde, nicht was beobachtet wurde. Eine als „nicht eingetragen“ ausgewiesene Gabe kann sehr wohl gegeben worden sein, ohne dass jemand zum Telefon gegriffen hat. Die Zeiten stammen vom Telefon derjenigen Person, die abgehakt hat. DosiCrew prüft keine Dosierungen, Wechselwirkungen oder Gegenanzeigen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This lists what was recorded in the app, not what was observed. A dose shown as “not recorded” may well have been given without anybody reaching for their phone. Times come from the phone of whoever ticked the dose off. DosiCrew does not check doses, interactions or contraindications."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aquí figura lo que se registró en la app, no lo que se observó. Una dosis marcada como «sin registrar» bien puede haberse administrado sin que nadie cogiera el teléfono. Las horas provienen del teléfono de quien la marcó. DosiCrew no comprueba dosis, interacciones ni contraindicaciones."
           }
         }
       }
@@ -4390,6 +5172,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Periodo de tratamiento"
+          }
+        }
+      }
+    },
+    "Twice": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doppelt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twice"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doble"
           }
         }
       }
@@ -4624,6 +5429,29 @@
         }
       }
     },
+    "What the report will say": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was im Bericht stehen wird"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What the report will say"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo que dirá el informe"
+          }
+        }
+      }
+    },
     "When": {
       "extractionState": "manual",
       "localizations": {
@@ -4854,6 +5682,29 @@
         }
       }
     },
+    "born %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geboren %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "born %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "nacido el %@"
+          }
+        }
+      }
+    },
     "drops": {
       "extractionState": "manual",
       "localizations": {
@@ -4992,6 +5843,29 @@
         }
       }
     },
+    "somebody else": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "jemand anderem"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "somebody else"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otra persona"
+          }
+        }
+      }
+    },
     "your child": {
       "extractionState": "manual",
       "localizations": {
@@ -5011,6 +5885,75 @@
           "stringUnit": {
             "state": "translated",
             "value": "tu hijo"
+          }
+        }
+      }
+    },
+    "“Given late” means more than an hour after the planned time.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Verspätet gegeben“ heißt: mehr als eine Stunde nach der geplanten Zeit."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Given late” means more than an hour after the planned time."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«Administradas con retraso» significa más de una hora después de la hora prevista."
+          }
+        }
+      }
+    },
+    "“Missing” gathers deliberately skipped, refused and not recorded; the columns above separate them.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Fehlend“ fasst bewusst ausgelassen, verweigert und nicht eingetragen zusammen; die Spalten oben trennen sie."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Missing” gathers deliberately skipped, refused and not recorded; the columns above separate them."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«Faltantes» agrupa omitidas, rechazadas y sin registrar; las columnas de arriba las separan."
+          }
+        }
+      }
+    },
+    "“Not recorded” means nobody ticked the dose off. It does not mean it was missed — the report says so too.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Nicht eingetragen“ heißt, dass niemand die Gabe abgehakt hat. Es heißt nicht, dass sie ausgefallen ist — das steht auch im Bericht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“Not recorded” means nobody ticked the dose off. It does not mean it was missed — the report says so too."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«Sin registrar» significa que nadie marcó la dosis. No significa que se omitiera; el informe también lo dice."
           }
         }
       }

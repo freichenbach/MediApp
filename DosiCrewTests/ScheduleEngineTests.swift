@@ -488,3 +488,361 @@ final class SharingInfoPlistTests: XCTestCase {
         )
     }
 }
+
+// MARK: - Report for the doctor
+
+/// The counting behind the report. A doctor may change a prescription over
+/// these numbers, so getting them right matters more than anything else in this
+/// file — and the distinction that matters most is between a dose somebody
+/// deliberately skipped and one nobody wrote down.
+final class DoseReportTests: XCTestCase {
+
+    private var calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        return calendar
+    }()
+
+    private func date(_ year: Int, _ month: Int, _ day: Int, _ hour: Int = 0, _ minute: Int = 0) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day, hour: hour, minute: minute))!
+    }
+
+    /// Twice a day, eight and eight.
+    private func medication(id: UUID = UUID(), name: String = "Amoxicillin") -> MedicationSnapshot {
+        MedicationSnapshot(
+            id: id,
+            name: name,
+            doseAmount: 5,
+            doseUnit: "ml",
+            rules: [ScheduleRuleSnapshot(minutesOfDay: [8 * 60, 20 * 60])]
+        )
+    }
+
+    private func build(
+        medications: [MedicationSnapshot],
+        logs: [DoseLogSnapshot],
+        events: [DoseReport.EventEntry] = [],
+        from: Date,
+        to: Date,
+        now: Date
+    ) -> DoseReport.Report {
+        DoseReport.build(
+            patientName: "Mia",
+            patientBirthDate: nil,
+            patientWeightKg: 0,
+            medications: medications,
+            logs: logs,
+            events: events,
+            from: from,
+            to: to,
+            now: now,
+            calendar: calendar
+        )
+    }
+
+    // MARK: What each outcome counts as
+
+    func testADoseGivenNearItsTimeCountsAsOnTime() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 8),
+                    takenAt: date(2026, 3, 10, 8, 20)
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.given, 1)
+        XCTAssertEqual(report.late, 0)
+    }
+
+    func testADoseGivenMoreThanAnHourLateIsCountedLateButStillGiven() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 8),
+                    takenAt: date(2026, 3, 10, 9, 30)
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.late, 1)
+        XCTAssertEqual(report.given, 0, "A late dose must not be counted twice")
+        // Both halves of "it did go in" are what a doctor reads.
+        XCTAssertEqual(report.tallies.first?.recordedShare, 1.0)
+    }
+
+    func testAnEarlyDoseIsNotCalledLate() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 8),
+                    takenAt: date(2026, 3, 10, 6)
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.given, 1)
+        XCTAssertEqual(report.late, 0)
+        XCTAssertEqual(report.days.first?.entries.first?.deviationMinutes, -120)
+    }
+
+    /// The distinction the whole report hangs on.
+    func testAnUntickedDoseIsNotRecordedRatherThanSkipped() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.notRecorded, 2)
+        XCTAssertEqual(report.skipped, 0, "Nobody said they skipped it — nobody said anything")
+        XCTAssertEqual(report.refused, 0)
+    }
+
+    func testDeliberateSkipAndRefusalAreKeptApart() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 8),
+                    takenAt: date(2026, 3, 10, 8),
+                    status: .skipped
+                ),
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 20),
+                    takenAt: date(2026, 3, 10, 20),
+                    status: .refused
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.skipped, 1)
+        XCTAssertEqual(report.refused, 1)
+        XCTAssertEqual(report.notRecorded, 0)
+        XCTAssertEqual(report.recordedShareIsZero, true)
+    }
+
+    // MARK: The future is not a gap
+
+    func testDosesStillToComeAreNotCountedAsMissing() {
+        let med = medication()
+        // Midday: the eight o'clock dose has passed, the evening one has not.
+        let report = build(
+            medications: [med],
+            logs: [],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 10, 12)
+        )
+        XCTAssertEqual(report.planned, 1, "Only the morning dose had fallen due")
+        XCTAssertEqual(report.notRecorded, 1)
+    }
+
+    func testADoseDueMinutesAgoIsStillWithinItsGracePeriod() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 10, 8, 10)
+        )
+        XCTAssertEqual(report.planned, 0, "Ten minutes late is not yet a missing dose")
+    }
+
+    // MARK: Doses outside the plan
+
+    func testAnExtraDoseIsListedSeparatelyAndNotAsAPlannedOne() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: nil,
+                    takenAt: date(2026, 3, 10, 2),
+                    personName: "Frank"
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.extras, 1)
+        XCTAssertEqual(report.given, 0)
+        XCTAssertEqual(report.notRecorded, 2, "Both planned doses are still unanswered")
+        XCTAssertEqual(report.days.first?.extras.first?.personName, "Frank")
+    }
+
+    /// Two people giving the same dose is the failure the app exists to catch,
+    /// so it must not be quietly folded into one line. Writing this test is what
+    /// found that it was: the slot counted as one dose given and the second
+    /// syringe vanished from the report entirely.
+    func testADoubleDoseIsReportedAsGivenTwice() {
+        let med = medication()
+        let logs = [
+            DoseLogSnapshot(
+                medicationID: med.id,
+                scheduledAt: date(2026, 3, 10, 8),
+                takenAt: date(2026, 3, 10, 8, 5),
+                personName: "Frank"
+            ),
+            DoseLogSnapshot(
+                medicationID: med.id,
+                scheduledAt: date(2026, 3, 10, 8),
+                takenAt: date(2026, 3, 10, 8, 25),
+                personName: "Ana"
+            )
+        ]
+        let report = build(
+            medications: [med],
+            logs: logs,
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.given, 1, "The slot itself was answered once")
+        XCTAssertEqual(report.duplicates, 1, "The child had this dose twice, and the report must say so")
+        XCTAssertEqual(report.days.first?.entries.first?.personName, "Frank",
+                       "The first person to tick it off is the one on the line")
+        XCTAssertEqual(report.days.first?.entries.first?.duplicates.first?.personName, "Ana")
+    }
+
+    /// A skip recorded next to a dose is somebody correcting themselves, not a
+    /// second syringe. Counting it as a double dose would raise an alarm in a
+    /// consulting room over nothing.
+    func testACorrectionIsNotADoubleDose() {
+        let med = medication()
+        let logs = [
+            DoseLogSnapshot(
+                medicationID: med.id,
+                scheduledAt: date(2026, 3, 10, 8),
+                takenAt: date(2026, 3, 10, 8, 5),
+                status: .skipped
+            ),
+            DoseLogSnapshot(
+                medicationID: med.id,
+                scheduledAt: date(2026, 3, 10, 8),
+                takenAt: date(2026, 3, 10, 8, 10),
+                status: .given
+            )
+        ]
+        let report = build(
+            medications: [med],
+            logs: logs,
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.given, 1)
+        XCTAssertEqual(report.duplicates, 0)
+    }
+
+    // MARK: Periods and shape
+
+    func testEveryDayOfThePeriodAppearsEvenWhenNothingHappened() {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [],
+            from: date(2026, 3, 8),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.days.count, 3)
+        XCTAssertEqual(report.planned, 6)
+    }
+
+    func testAMedicationWithNothingDueIsLeftOutOfTheTable() {
+        let dosed = medication(name: "Amoxicillin")
+        let unused = MedicationSnapshot(id: UUID(), name: "Vitamin D", rules: [])
+        let report = build(
+            medications: [dosed, unused],
+            logs: [],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertEqual(report.tallies.map(\.name), ["Amoxicillin"])
+    }
+
+    func testAnEmptyPeriodIsReportedAsEmptyRatherThanAsPerfectAdherence() {
+        let report = build(
+            medications: [],
+            logs: [],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        XCTAssertTrue(report.isEmpty)
+        XCTAssertEqual(report.planned, 0)
+        XCTAssertNil(report.tallies.first?.recordedShare)
+    }
+
+    // MARK: The PDF
+
+    func testThePDFIsProducedAndLooksLikeAPDF() throws {
+        let med = medication()
+        let report = build(
+            medications: [med],
+            logs: [
+                DoseLogSnapshot(
+                    medicationID: med.id,
+                    scheduledAt: date(2026, 3, 10, 8),
+                    takenAt: date(2026, 3, 10, 8, 5),
+                    personName: "Frank",
+                    note: "with breakfast"
+                )
+            ],
+            from: date(2026, 3, 10),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        let data = ReportPDF.data(for: report)
+        XCTAssertGreaterThan(data.count, 1000, "An empty PDF would still have a header")
+        XCTAssertEqual(data.prefix(4), Data("%PDF".utf8))
+    }
+
+    func testTheFilenameCarriesTheChildAndThePeriod() {
+        let report = build(
+            medications: [],
+            logs: [],
+            from: date(2026, 3, 8),
+            to: date(2026, 3, 10),
+            now: date(2026, 3, 11)
+        )
+        let name = ReportPDF.filename(for: report)
+        XCTAssertTrue(name.contains("Mia"), name)
+        XCTAssertTrue(name.contains("2026-03-08"), name)
+        XCTAssertTrue(name.hasSuffix(".pdf"), name)
+    }
+}
+
+private extension DoseReport.Report {
+    /// Reads better in the assertion than the double comparison it stands for.
+    var recordedShareIsZero: Bool { tallies.first?.recordedShare == 0 }
+}
