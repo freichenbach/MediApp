@@ -846,3 +846,57 @@ private extension DoseReport.Report {
     /// Reads better in the assertion than the double comparison it stands for.
     var recordedShareIsZero: Bool { tallies.first?.recordedShare == 0 }
 }
+
+// MARK: - Midnight
+
+/// The Today screen keeps the day it was opened on. Left alone, an app opened
+/// yesterday evening and picked up over breakfast still shows yesterday — and
+/// somebody would tick off the previous day's doses believing they were today's.
+/// That is the app handing over the exact mistake it exists to prevent, so the
+/// rule that decides when the view follows midnight is worth pinning down.
+final class MidnightRolloverTests: XCTestCase {
+
+    private var calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        return calendar
+    }()
+
+    private func day(_ year: Int, _ month: Int, _ day: Int) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    private func rolled(selected: Date, lastKnownToday: Date, now: Date) -> Date {
+        TodayView.dayAfterMidnight(
+            selected: selected,
+            lastKnownToday: lastKnownToday,
+            now: now,
+            calendar: calendar
+        )
+    }
+
+    func testSomebodyLookingAtTodayIsCarriedOverMidnight() {
+        let yesterday = day(2026, 3, 10)
+        XCTAssertEqual(
+            rolled(selected: yesterday, lastKnownToday: yesterday, now: day(2026, 3, 11)),
+            day(2026, 3, 11)
+        )
+    }
+
+    func testSomebodyWhoPagedBackOnPurposeIsLeftWhereTheyWere() {
+        XCTAssertEqual(
+            rolled(selected: day(2026, 3, 5), lastKnownToday: day(2026, 3, 10), now: day(2026, 3, 11)),
+            day(2026, 3, 5),
+            "Paging back to Tuesday and switching apps must not silently jump the view forward"
+        )
+    }
+
+    func testNothingMovesWhenTheDayHasNotChanged() {
+        let today = day(2026, 3, 10)
+        XCTAssertEqual(rolled(selected: today, lastKnownToday: today, now: today), today)
+        XCTAssertEqual(
+            rolled(selected: day(2026, 3, 5), lastKnownToday: today, now: today),
+            day(2026, 3, 5)
+        )
+    }
+}

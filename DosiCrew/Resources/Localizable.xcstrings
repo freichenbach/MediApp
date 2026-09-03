@@ -691,6 +691,29 @@
         }
       }
     },
+    "Back to today": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück zu heute"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a hoy"
+          }
+        }
+      }
+    },
     "Born": {
       "extractionState": "manual",
       "localizations": {

@@ -13,6 +13,11 @@ struct TodayView: View {
     private var patients: FetchedResults<Patient>
 
     @State private var selectedDate: Date = Calendar.current.startOfDay(for: Date())
+    /// Which day was "today" the last time the app came to the front, so a day
+    /// rolling over while the app slept can be noticed.
+    @State private var lastKnownToday: Date = Calendar.current.startOfDay(for: Date())
+
+    @Environment(\.scenePhase) private var scenePhase
     @State private var extraDoseMedication: Medication?
     @State private var showingEventEditor = false
     /// The log whose time is being corrected. The managed object, not the
@@ -29,6 +34,9 @@ struct TodayView: View {
                 onEditDoseTime: { editingTimeOf = $0 }
             )
             .navigationTitle(navigationTitle)
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { followMidnightIfNeeded() }
+            }
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .top) { dateBar }
             .toolbar {
@@ -85,13 +93,27 @@ struct TodayView: View {
             .accessibilityLabel("Previous day")
 
             Button {
-                withAnimation { selectedDate = calendar.startOfDay(for: Date()) }
+                jumpToToday()
             } label: {
-                Text(selectedDate, format: .dateTime.weekday(.wide).day().month(.wide))
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
+                VStack(spacing: 1) {
+                    Text(selectedDate, format: .dateTime.weekday(.wide).day().month(.wide))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                    // Only while it would do something. The date has always
+                    // been tappable, but it reads as a caption, so nobody
+                    // found it — and a button that is invisible until it is
+                    // useful beats one that is invisible always.
+                    if !isShowingToday {
+                        Label("Back to today", systemImage: "arrow.uturn.backward")
+                            .font(.caption2)
+                            .foregroundStyle(Color.accentColor)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(.rect)
             }
             .buttonStyle(.plain)
+            .disabled(isShowingToday)
             .accessibilityHint("Jump back to today")
 
             Button {
@@ -111,6 +133,46 @@ struct TodayView: View {
         if calendar.isDateInYesterday(selectedDate) { return String(localized: "Yesterday") }
         if calendar.isDateInTomorrow(selectedDate) { return String(localized: "Tomorrow") }
         return selectedDate.formatted(.dateTime.day().month(.abbreviated))
+    }
+
+    private var isShowingToday: Bool { calendar.isDateInToday(selectedDate) }
+
+    private func jumpToToday() {
+        withAnimation { selectedDate = calendar.startOfDay(for: Date()) }
+    }
+
+    private func followMidnightIfNeeded() {
+        let today = calendar.startOfDay(for: Date())
+        selectedDate = Self.dayAfterMidnight(
+            selected: selectedDate,
+            lastKnownToday: lastKnownToday,
+            now: Date(),
+            calendar: calendar
+        )
+        lastKnownToday = today
+    }
+
+    /// Which day to show once the app comes back and midnight has passed.
+    ///
+    /// Without this the app opens on yesterday: `selectedDate` is set when the
+    /// view first appears and nothing moves it. Somebody checking the plan over
+    /// breakfast would be ticking off the previous day's doses — the exact
+    /// mistake the app exists to prevent, handed to them by the app itself.
+    ///
+    /// Only for somebody who *was* on today. Anyone who deliberately paged back
+    /// to Tuesday and briefly switched apps means to still be on Tuesday.
+    ///
+    /// Free of view state so the rule can be tested rather than restated in a
+    /// test, where the two would drift apart at the first change.
+    static func dayAfterMidnight(
+        selected: Date,
+        lastKnownToday: Date,
+        now: Date,
+        calendar: Calendar
+    ) -> Date {
+        let today = calendar.startOfDay(for: now)
+        guard today != lastKnownToday else { return selected }
+        return selected == lastKnownToday ? today : selected
     }
 
     private func shiftDay(by days: Int) {
