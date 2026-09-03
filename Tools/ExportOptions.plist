@@ -14,5 +14,13 @@
 	<false/>
 	<key>teamID</key>
 	<string>__TEAM_ID__</string>
+	<!-- Required for anything that uses CloudKit. Without it the exported app
+	     carries no com.apple.developer.icloud-container-environment, CloudKit
+	     cannot resolve the container, and the app traps on launch inside
+	     -[CKContainerImplementation _checkRequiredEntitlements]. The export
+	     itself succeeds, so the omission is invisible until a device runs it.
+	     TestFlight and the App Store always talk to Production. -->
+	<key>iCloudContainerEnvironment</key>
+	<string>Production</string>
 </dict>
 </plist>

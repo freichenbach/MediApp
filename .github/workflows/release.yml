@@ -179,6 +179,38 @@ jobs:
           fi
           ls -lh build/export
 
+      - name: Check the signed entitlements
+        run: |
+          # Build 6 exported cleanly and then trapped on launch inside
+          # -[CKContainerImplementation _checkRequiredEntitlements]: the IPA had
+          # no iCloud container environment. Nothing before this point noticed,
+          # because a missing export option is not an export error.
+          #
+          # So the built artefact is asked what it actually carries, rather than
+          # the source being trusted to describe it.
+          APP=$(find build/export -maxdepth 3 -name '*.app' -print -quit)
+          if [ -z "$APP" ]; then
+            # Only the .ipa is produced for some export methods; unpack it.
+            IPA=$(find build/export -maxdepth 1 -name '*.ipa' -print -quit)
+            [ -n "$IPA" ] || { echo "::error::Neither an .app nor an .ipa in build/export."; exit 1; }
+            rm -rf build/unpacked && mkdir -p build/unpacked
+            unzip -q "$IPA" -d build/unpacked
+            APP=$(find build/unpacked/Payload -maxdepth 1 -name '*.app' -print -quit)
+          fi
+          echo "Checking $APP"
+          codesign -d --entitlements :- "$APP" > entitlements.plist 2>/dev/null
+          cat entitlements.plist
+
+          missing=""
+          grep -q "iCloud.es.reichenbach.DosiCrew" entitlements.plist || missing="$missing container-identifier"
+          grep -q "com.apple.developer.icloud-container-environment" entitlements.plist || missing="$missing container-environment"
+          grep -q "com.apple.developer.usernotifications.time-sensitive" entitlements.plist || missing="$missing time-sensitive"
+          if [ -n "$missing" ]; then
+            echo "::error::The signed app is missing:$missing. Check Tools/ExportOptions.plist and the capabilities on the App ID. Uploading now would produce a build that crashes on launch."
+            exit 1
+          fi
+          echo "Entitlements look complete."
+
       - name: Upload to TestFlight
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
