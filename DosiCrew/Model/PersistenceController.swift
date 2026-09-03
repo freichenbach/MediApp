@@ -83,7 +83,10 @@ final class PersistenceController {
             guard let self else { return }
             if let error {
                 self.loadError = error
-                Self.logger.error("Failed to load store \(description.url?.lastPathComponent ?? "?"): \(error.localizedDescription)")
+                // The whole error, not `localizedDescription`: Core Data
+                // answers that with "Ein Core Data-Fehler ist aufgetreten.",
+                // which is true and says nothing. The reason is in `userInfo`.
+                Self.logger.error("Failed to load store \(description.url?.lastPathComponent ?? "?"): \(String(describing: error))")
                 return
             }
             guard let url = description.url,
@@ -103,6 +106,9 @@ final class PersistenceController {
             // replace the CloudKit stores with a plain one and turn a clear
             // "the container is not available, because …" into a baffling
             // "no stores are configured to use CloudKit".
+            #if DEBUG
+            reportCloudKitStoreFailure()
+            #endif
             if !Self.isBootstrappingCloudKitSchema { loadLocalFallbackStore() }
         }
 
@@ -216,7 +222,10 @@ final class PersistenceController {
         // configured to use CloudKit" — true, unhelpful, and three steps
         // downstream of whatever actually went wrong.
         guard hasCloudKitStore else {
-            reportBootstrapStoreFailure()
+            print(Self.frame("""
+                Schema NOT initialized: no CloudKit-backed store is open.
+                The reason was printed above.
+                """))
             return
         }
 
@@ -260,16 +269,16 @@ final class PersistenceController {
         }
     }
 
-    /// Says why the mirrored stores did not open, during the one run that
-    /// exists to open them.
+    /// Says why the mirrored stores did not open.
     ///
-    /// The ordinary app swallows this on purpose — it falls back to a local
+    /// The shipping app swallows this on purpose — it falls back to a local
     /// store so a dose can still be recorded, and a person holding a sick child
-    /// is not helped by an `NSError`. The bootstrap run is the opposite case:
-    /// it is a diagnosis, performed once, by someone sitting at a Mac who can
-    /// act on the answer. So here the error is printed in full, with the
-    /// handful of causes that actually produce it.
-    private func reportBootstrapStoreFailure() {
+    /// is not helped by an `NSError`. A debug build is the opposite case: it is
+    /// a developer's build, and whoever is looking at the console can act on
+    /// the answer. So the error is printed in full there, with the handful of
+    /// causes that actually produce it — and without needing to remember the
+    /// bootstrap launch argument first.
+    private func reportCloudKitStoreFailure() {
         let detail = loadError.map { String(describing: $0) } ?? "The stores did not load, and Core Data reported no error."
         print(Self.frame("""
             The CloudKit stores did not open — schema NOT initialized.
