@@ -3,6 +3,10 @@
 Formular:
 <https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement>
 
+**Gestellt am 2026-09-03 — Request ID `5BULB2V9N5`.** Was unten steht, ist
+damit Beleg statt Anleitung: es dokumentiert, was eingereicht wurde, und dient
+als Vorlage, falls Apple nachfragt oder der Antrag wiederholt werden muss.
+
 Auszufüllen ist der Abschnitt **Details**. Er hat vier Eingaben; unten steht zu
 jeder der fertige Text zum Kopieren. Das Formular ist englisch, also ist der
 englische Text der einzureichende — die deutsche Fassung darunter dient nur zum
