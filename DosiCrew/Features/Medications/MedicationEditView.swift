@@ -21,8 +21,12 @@ struct MedicationEditView: View {
     @State private var endDate = Date()
 
     @State private var loaded = false
+    @State private var originalName = ""
 
-    private var isNew: Bool { medication.isInserted }
+    /// Frozen at first appearance. Reading `medication.isInserted` live would
+    /// flip after saving, and — worse — touch an object that a rollback has
+    /// already invalidated.
+    @State private var isNew = false
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
@@ -107,8 +111,9 @@ struct MedicationEditView: View {
             }
             // The medication's own name instead of a static label: with
             // "Abbrechen" and "Sichern" beside it, "Medikament bearbeiten"
-            // truncates to "Medikament bea…".
-            .navigationTitle(isNew ? Text("New medication") : Text(trimmedName.isEmpty ? medication.displayName : trimmedName))
+            // truncates to "Medikament bea…". Read from local state, never from
+            // the managed object, which may be gone while the sheet animates out.
+            .navigationTitle(isNew ? Text("New medication") : Text(trimmedName.isEmpty ? originalName : trimmedName))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -160,6 +165,8 @@ struct MedicationEditView: View {
     private func load() {
         guard !loaded else { return }
         loaded = true
+        isNew = medication.isInserted
+        originalName = medication.displayName
         name = medication.name ?? ""
         form = medication.formEnum
         doseAmount = medication.doseAmount
@@ -171,10 +178,14 @@ struct MedicationEditView: View {
         if let end = medication.endDate { hasEndDate = true; endDate = end }
     }
 
-    /// Discards everything unsaved in the view context, which also removes a
-    /// medication that was inserted just to open this editor.
+    /// Only dismisses. The rollback happens at the presenting site once the
+    /// sheet is gone.
+    ///
+    /// Rolling back here crashed the app: a new medication is inserted into the
+    /// context *before* the editor opens, so the rollback invalidated the very
+    /// object this view — and the sheet's `item` binding — were still reading
+    /// from, which Core Data answers with "could not fulfill a fault".
     private func cancel() {
-        context.rollback()
         dismiss()
     }
 

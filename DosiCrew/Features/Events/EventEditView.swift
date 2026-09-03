@@ -84,7 +84,10 @@ struct EventEditView: View {
         .toolbar {
             if isNew {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { context.rollback(); dismiss() }
+                    // No rollback needed: a new event is only inserted in
+                    // commit(), so there is nothing pending to undo — and
+                    // rolling back here would discard unrelated edits.
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save", action: saveAndDismiss)

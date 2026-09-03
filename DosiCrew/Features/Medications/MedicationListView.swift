@@ -70,7 +70,7 @@ struct MedicationListView: View {
                     }
                 }
             }
-            .sheet(item: $editing) { medication in
+            .sheet(item: $editing, onDismiss: discardUnsavedChanges) { medication in
                 MedicationEditView(medication: medication)
             }
         }
@@ -99,6 +99,18 @@ struct MedicationListView: View {
     private func delete(_ medication: Medication) {
         context.delete(medication)
         commit()
+    }
+
+    /// Runs once the editor sheet is gone.
+    ///
+    /// "Add medication" inserts the object before the editor opens, so
+    /// cancelling has to undo that. Doing it inside the editor crashed the app:
+    /// the rollback invalidated the object while the sheet — and its `item`
+    /// binding — were still reading from it. After a save there is nothing
+    /// pending, so this is a no-op then.
+    private func discardUnsavedChanges() {
+        guard context.hasChanges else { return }
+        context.rollback()
     }
 
     private func commit() {
