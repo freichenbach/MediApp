@@ -97,7 +97,7 @@ auf dem iPad:
 
 | Was | Wo | Wert |
 |---|---|---|
-| App ID | developer.apple.com → Identifiers | `es.reichenbach.DosiCrew`, mit **iCloud** und **Push Notifications** |
+| App ID | developer.apple.com → Identifiers | `es.reichenbach.DosiCrew`, mit **iCloud**, **Push Notifications** und **Time Sensitive Notifications** |
 | CloudKit-Container | ebenda, beim iCloud-Häkchen | `iCloud.es.reichenbach.DosiCrew` |
 | App-Datensatz | App Store Connect → Apps → **+** | Name `DosiCrew`, Untertitel `Medikamente gemeinsam im Blick` |
 | API-Schlüssel | App Store Connect → Users and Access → Integrations | **Team Key** mit Rolle **Admin**; die `.p8` ist nur einmal ladbar |
@@ -179,6 +179,41 @@ wirklich läuft.
 
 Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
 Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
+
+### Erinnerungen, die durchkommen
+
+Eine Erinnerung, die im Fokus hängenbleibt, ist keine. Deshalb tragen alle
+Dosis-Erinnerungen `interruptionLevel = .timeSensitive` — sie kommen durch
+Fokus und „Nicht stören".
+
+Dafür braucht die App-ID die Berechtigung, sonst lehnt der Export das
+Entitlement ab:
+
+> developer.apple.com → Certificates, Identifiers & Profiles → **Identifiers** →
+> `es.reichenbach.DosiCrew` → **Time Sensitive Notifications** ankreuzen → *Save*
+
+Das ist ein Häkchen ohne Antrag; Apple prüft nichts. Ist es nicht gesetzt,
+scheitert der Release-Lauf beim Signieren mit einer Meldung, die das Entitlement
+beim Namen nennt. Der Entitlement-Eintrag steht in einem eigenen Commit und ist
+damit in einem Schritt zurücknehmbar.
+
+**Was Time Sensitive nicht kann:** gegen den Stummschalter anklingeln. Das
+können nur *Critical Alerts*, und die gibt Apple einzeln frei —
+Medikamentengabe ist ein ausdrücklich zugelassener Fall. Der Code dafür liegt
+schon da und ist bis zur Freigabe unerreichbar: `requestAuthorization` fragt
+`.criticalAlert` mit an, und `criticalAlertSetting` entscheidet zur Laufzeit.
+Kommt die Freigabe, wirkt sie ohne Codeänderung — es fehlt dann nur noch
+`com.apple.developer.usernotifications.critical-alerts` in beiden
+Entitlement-Dateien. **Vorher eingetragen bricht es den Export**, also erst
+danach.
+
+Der fertige Antragstext liegt unter [`Docs/critical-alerts-antrag.md`](Docs/critical-alerts-antrag.md),
+einzureichen unter
+<https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement>.
+
+Was in den Einstellungen der App steht, ist jeweils der tatsächliche Zustand:
+klingelt trotz Stummschaltung, kommt nur durch den Fokus, oder zeitkritische
+Mitteilungen sind in iOS ausgeschaltet.
 
 ### Screenshots
 
