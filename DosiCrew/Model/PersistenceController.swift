@@ -321,10 +321,15 @@ final class PersistenceController {
     ///
     /// `initializeCloudKitSchema` gives itself 30 seconds for the whole model
     /// and gives up if the round trips take longer — which on an ordinary
-    /// connection they often do. Nothing is broken and nothing is lost: the
-    /// work is incremental, so each further attempt only has to create what is
-    /// still missing, and two or three runs usually finish it. Without this
-    /// line the message reads like a wall.
+    /// connection they often do. What it creates survives the timeout, so
+    /// running it again does get further.
+    ///
+    /// But it re-validates the *entire* model on every run rather than resuming
+    /// where it stopped. On a slow enough link it therefore keeps timing out
+    /// long after there is nothing left to create. So the answer is not "keep
+    /// running it until it succeeds" — it is "check whether the record types
+    /// are there, and stop when they are". Saying only the first would send
+    /// somebody into a loop that cannot end.
     ///
     /// Matched on the text because Core Data reports it as a plain 134060 with
     /// the reason buried in a nested error, with no distinct code to test.
@@ -332,16 +337,22 @@ final class PersistenceController {
         guard String(describing: error).contains("timed out") else { return "" }
         return """
 
-            This is a timeout, not a defect, and it is common. The schema is
-            built incrementally — run it again, each attempt creates what is
-            still missing. Two or three runs usually finish it.
+            This is a timeout, not a defect. Do not judge it by this message —
+            check what is actually in CloudKit:
 
-            Watch the progress in the CloudKit Console under Schema → Record
-            Types: CD_Patient, CD_Medication, CD_ScheduleRule, CD_DoseLog and
-            CD_CareEvent all have to be there before deploying to production.
+            icloud.developer.apple.com → this container → Schema → Record Types
 
-            A fast, stable network shortens it. On a phone, WiFi rather than
-            cellular.
+            All five have to be there: CD_Patient, CD_Medication,
+            CD_ScheduleRule, CD_DoseLog, CD_CareEvent. (A "Users" type belongs
+            to CloudKit itself.)
+
+            All five present → the schema is complete. Deploy Schema Changes →
+            Production and remove the launch argument. This call re-validates
+            the whole model on every run, so on a slow link it will keep timing
+            out with nothing left to do. Running it again would not help.
+
+            Some missing → run it again; what was created is kept. A fast,
+            stable network shortens it; on a phone, WiFi rather than cellular.
             """
     }
 

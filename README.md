@@ -176,6 +176,24 @@ wirklich einen Menschen brauchen: die iCloud-Anmeldung im Simulator und das
 Deployen in der CloudKit Console. Über eine Remote-Desktop-Verbindung spart
 das eine Menge Klickerei.
 
+**Der Aufruf läuft oft in einen Timeout — das ist kein Fehlschlag.**
+`initializeCloudKitSchema` gibt sich 30 Sekunden für das ganze Modell und
+bricht ab, wenn die Runden zu CloudKit länger brauchen. Was angelegt wurde,
+bleibt. Aber der Aufruf prüft bei jedem Lauf das *gesamte* Modell erneut, statt
+dort weiterzumachen, wo er aufgehört hat — auf einer langsamen Verbindung läuft
+er also weiter in den Timeout, auch wenn nichts mehr anzulegen ist.
+
+Nicht die Meldung entscheidet, sondern die Konsole:
+
+> icloud.developer.apple.com → Container → **Schema → Record Types**
+
+Diese fünf müssen dastehen: `CD_Patient`, `CD_Medication`, `CD_ScheduleRule`,
+`CD_DoseLog`, `CD_CareEvent`. Der Typ `Users` gehört CloudKit selbst.
+
+- **Alle fünf da** → fertig. *Deploy Schema Changes → Production*, Argument
+  wieder entfernen. Weitere Läufe bringen nichts.
+- **Einer fehlt** → nochmal starten. WLAN statt Mobilfunk hilft spürbar.
+
 **Von Hand, falls das Skript hakt:**
 
 1. Repo klonen, `DosiCrew.xcodeproj` öffnen, Team unter *Signing & Capabilities*
