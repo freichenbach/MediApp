@@ -149,19 +149,46 @@ Schlüssel aber bei Apple; auf dem Runner meldet `security find-identity`
 deshalb `0 valid identities found`, auch mit frisch angelegtem, entsperrtem
 Schlüsselbund. Das Zertifikat muss also mitgebracht werden.
 
-Das geht ohne Mac. Gebraucht wird **OpenSSL** — unter Windows am einfachsten
-über [Git für Windows](https://git-scm.com/download/win); danach im
-Startmenü **Git Bash** öffnen. Alle Befehle unten laufen dort.
+Das geht ohne Mac, in **PowerShell** mit OpenSSL. Ist keines installiert,
+bringt [Git für Windows](https://git-scm.com/download/win) eines mit.
+
+Zuerst die Version feststellen — davon hängt ein Schalter weiter unten ab:
+
+```powershell
+openssl version
+```
 
 **1. Schlüssel und Zertifikatsantrag erzeugen**
 
-```bash
-mkdir -p ~/dosicrew-cert && cd ~/dosicrew-cert
+```powershell
+mkdir ~\dosicrew-cert; cd ~\dosicrew-cert
 
 openssl genrsa -out distribution.key 2048
-openssl req -new -key distribution.key -out distribution.csr \
-  -subj "/emailAddress=DEINE@MAIL.DE/CN=DosiCrew Distribution/C=DE"
 ```
+
+`openssl req` braucht eine Konfigurationsdatei. Manche Windows-Binaries suchen
+sie an einem Pfad, der beim Bauen fest eingetragen wurde und auf dem eigenen
+Rechner nicht existiert — der Befehl bricht dann mit
+`Can't open …/openssl.cnf for reading` ab. Die Datei selbst anzulegen ist
+einfacher als das zu reparieren, und die Angaben stehen dann gleich mit drin:
+
+```powershell
+@"
+[ req ]
+distinguished_name = dn
+prompt = no
+
+[ dn ]
+emailAddress = DEINE@MAIL.DE
+CN = DosiCrew Distribution
+C = DE
+"@ | Set-Content -Encoding ascii openssl.cnf
+
+openssl req -new -key distribution.key -out distribution.csr -config openssl.cnf
+```
+
+`-Encoding ascii` ist nicht kosmetisch: PowerShell schreibt sonst UTF-16, und
+OpenSSL liest die Datei dann als Kauderwelsch.
 
 `distribution.key` ist der private Schlüssel. Er verlässt den Rechner nicht und
 lässt sich nicht wiederherstellen — geht er verloren, wird das Zertifikat
@@ -175,35 +202,35 @@ Signing Request* die Datei `distribution.csr` hochladen → *Continue* →
 **Download**. Es kommt eine Datei `distribution.cer` heraus; sie gehört ins
 selbe Verzeichnis.
 
-> Apple erlaubt höchstens drei Distributions-Zertifikate gleichzeitig. Die
-> Läufe 4 bis 13 haben über Cloud Signing möglicherweise schon welche angelegt.
+> Apple erlaubt höchstens drei Distributions-Zertifikate gleichzeitig, und
+> Cloud Signing hat über die Läufe hinweg möglicherweise schon welche angelegt.
 > Ist der Knopf ausgegraut, in derselben Liste ein altes auswählen und
-> *Revoke* — die dazugehörigen privaten Schlüssel liegen ohnehin bei Apple und
-> sind für uns nicht zu gebrauchen.
+> *Revoke* — deren private Schlüssel liegen bei Apple und sind hier ohnehin
+> nicht zu gebrauchen.
 
 **3. Beides zu einer `.p12` zusammenfügen**
 
-```bash
+```powershell
 openssl x509 -inform DER -in distribution.cer -out distribution.pem
 
-openssl pkcs12 -export -legacy \
-  -inkey distribution.key \
-  -in distribution.pem \
-  -out distribution.p12 \
-  -name "Apple Distribution"
+openssl pkcs12 -export -inkey distribution.key -in distribution.pem `
+  -out distribution.p12 -name "Apple Distribution"
 ```
 
-Der letzte Befehl fragt zweimal nach einem Passwort. Es darf beliebig sein,
+Der zweite Befehl fragt zweimal nach einem Passwort. Es darf beliebig sein,
 muss aber gemerkt werden — es wird gleich zum Secret `DIST_CERT_PASSWORD`.
 
-**`-legacy` ist nicht optional.** OpenSSL 3 verschlüsselt `.p12`-Dateien sonst
-mit einem Verfahren, das macOS nicht lesen kann; der Import auf dem Runner
-scheitert dann mit einer Meldung, die nach einem falschen Passwort aussieht.
+**Bei OpenSSL 3 gehört `-legacy` dazu**, direkt hinter `-export`. OpenSSL 3
+verschlüsselt `.p12`-Dateien sonst mit einem Verfahren, das macOS nicht lesen
+kann; der Import auf dem Runner scheitert dann mit einer Meldung, die nach
+einem falschen Passwort aussieht. OpenSSL 1.1.1 kennt den Schalter nicht und
+braucht ihn auch nicht — dort ist das alte Format ohnehin der Standard.
 
 **4. Base64 für das Secret**
 
-```bash
-base64 -w0 distribution.p12 > distribution.p12.txt
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\distribution.p12")) `
+  | Set-Content -Encoding ascii distribution.p12.txt
 ```
 
 Den Inhalt von `distribution.p12.txt` — eine einzige lange Zeile — als
