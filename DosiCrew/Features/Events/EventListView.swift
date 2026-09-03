@@ -115,10 +115,10 @@ struct EventRow: View {
                 .frame(width: 30)
 
             VStack(alignment: .leading, spacing: 2) {
-                if showsChildName, let owner = event.patient, let id = owner.id {
+                if showsChildName, let owner = event.patient {
                     Text(owner.displayName)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(MedColor.forPatient(id))
+                        .foregroundStyle(owner.displayColor)
                         .textCase(.uppercase)
                 }
                 HStack(spacing: 6) {

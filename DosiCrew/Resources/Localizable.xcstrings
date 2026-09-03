@@ -3152,25 +3152,25 @@
         }
       }
     },
-    "Shared with everyone you invite.": {
+    "Shared with everyone you invite. The colour marks this child's doses on the Today screen.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wird mit allen Eingeladenen geteilt."
+            "value": "Wird mit allen geteilt, die du einlädst. Die Farbe kennzeichnet die Gaben dieses Kindes auf „Heute“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shared with everyone you invite."
+            "value": "Shared with everyone you invite. The colour marks this child's doses on the Today screen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se comparte con todas las personas invitadas."
+            "value": "Se comparte con todas las personas que invites. El color identifica las tomas de este niño en «Hoy»."
           }
         }
       }

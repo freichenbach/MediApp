@@ -15,7 +15,17 @@ extension Patient {
         return trimmed.isEmpty ? String(localized: "Unnamed") : trimmed
     }
 
-    var color: Color { Color(hex: colorHex ?? "") ?? MedColor.fallback.color }
+    /// The colour this child's name is written in.
+    ///
+    /// Stored on the record, so every iPhone sharing the plan shows the same
+    /// one. Falls back to a colour derived from the identifier for records
+    /// created before colours were assigned — anything but letting them all
+    /// come out the same.
+    var displayColor: Color {
+        if let hex = colorHex, let stored = Color(hex: hex) { return stored }
+        guard let id else { return ChildColor.fallback.color }
+        return ChildColor.derived(from: id).color
+    }
 
     var sortedMedications: [Medication] {
         let all = (medications as? Set<Medication>) ?? []
@@ -38,9 +48,16 @@ extension Patient {
         let patient = Patient(context: context)
         patient.id = UUID()
         patient.name = String(localized: "My child")
-        patient.colorHex = MedColor.fallback.rawValue
+        // Picked against the siblings that already exist, so no two children
+        // in one plan share a colour.
+        patient.colorHex = ChildColor.unused(among: existingColorHexes(in: context)).rawValue
         patient.createdAt = Date()
         return patient
+    }
+
+    private static func existingColorHexes(in context: NSManagedObjectContext) -> [String?] {
+        let request = NSFetchRequest<Patient>(entityName: "Patient")
+        return ((try? context.fetch(request)) ?? []).map(\.colorHex)
     }
 
     /// The oldest patient, creating one if the app has never been used.
@@ -123,6 +140,7 @@ extension Medication {
             name: displayName,
             patientID: patient?.id ?? UUID(),
             patientName: patient?.displayName ?? "",
+            patientColorHex: patient?.colorHex ?? ChildColor.fallback.rawValue,
             doseAmount: doseAmount,
             doseUnit: (doseUnit ?? "").trimmingCharacters(in: .whitespaces),
             form: formEnum,

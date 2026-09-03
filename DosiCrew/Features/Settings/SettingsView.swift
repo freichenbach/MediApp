@@ -176,7 +176,7 @@ private struct ChildRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Circle()
-                .fill(patient.id.map(MedColor.forPatient) ?? MedColor.fallback.color)
+                .fill(patient.displayColor)
                 .frame(width: 12, height: 12)
 
             VStack(alignment: .leading, spacing: 2) {

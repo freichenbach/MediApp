@@ -111,11 +111,10 @@ struct DoseSlotRow: View {
         Color(hex: slot.medication.colorHex) ?? MedColor.fallback.color
     }
 
-    /// Derived from the child's identifier, not the medication's colour: two
-    /// children may well take the same medicine, and the row has to separate
-    /// them, not merge them.
+    /// The child's colour, not the medication's: two children may well take
+    /// the same medicine, and the row has to separate them, not merge them.
     private var childTint: Color {
-        MedColor.forPatient(slot.medication.patientID)
+        Color(hex: slot.medication.patientColorHex) ?? ChildColor.fallback.color
     }
 
     private var marker: some View {
@@ -217,7 +216,7 @@ struct ExtraDoseRow: View {
                 if showsChildName {
                     Text(extra.medication.patientName)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(MedColor.forPatient(extra.medication.patientID))
+                        .foregroundStyle(Color(hex: extra.medication.patientColorHex) ?? ChildColor.fallback.color)
                         .textCase(.uppercase)
                 }
                 Text(extra.medication.name).font(.body.weight(.medium))

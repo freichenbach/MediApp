@@ -13,6 +13,7 @@ struct PatientEditView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var name: String = ""
+    @State private var colorHex: String = ChildColor.fallback.rawValue
     @State private var hasBirthDate = false
     @State private var birthDate = Date()
     @State private var loaded = false
@@ -28,8 +29,10 @@ struct PatientEditView: View {
                 if hasBirthDate {
                     DatePicker("Born", selection: $birthDate, in: ...Date(), displayedComponents: .date)
                 }
+
+                LabeledContent("Colour") { colorPicker }
             } footer: {
-                Text("Shared with everyone you invite.")
+                Text("Shared with everyone you invite. The colour marks this child's doses on the Today screen.")
             }
 
             Section {
@@ -71,10 +74,34 @@ struct PatientEditView: View {
         }
     }
 
+    /// Deliberately no green, orange or red: those three mean given, skipped
+    /// and refused, and red is what the duplicate-dose warning shouts in.
+    private var colorPicker: some View {
+        HStack(spacing: 10) {
+            ForEach(ChildColor.allCases) { option in
+                Button { colorHex = option.rawValue } label: {
+                    Circle()
+                        .fill(option.color)
+                        .frame(width: 26, height: 26)
+                        .overlay {
+                            if colorHex.caseInsensitiveCompare(option.rawValue) == .orderedSame {
+                                Image(systemName: "checkmark")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(option.rawValue))
+            }
+        }
+    }
+
     private func load() {
         guard !loaded else { return }
         loaded = true
         name = patient.name ?? ""
+        colorHex = patient.colorHex ?? ChildColor.fallback.rawValue
         if let birth = patient.birthDate { hasBirthDate = true; birthDate = birth }
     }
 
@@ -82,6 +109,7 @@ struct PatientEditView: View {
         guard !patient.isDeleted else { return }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         patient.name = trimmed.isEmpty ? nil : trimmed
+        patient.colorHex = colorHex
         patient.birthDate = hasBirthDate ? birthDate : nil
         PersistenceController.shared.save(context)
     }

@@ -251,22 +251,60 @@ enum MedColor: String, CaseIterable, Identifiable {
     var color: Color { Color(hex: rawValue) ?? .accentColor }
     static var fallback: MedColor { .blue }
 
-    /// A stable colour for a child, derived from their identifier.
+}
+
+// MARK: - Child colours
+
+/// The colours a child's name is written in.
+///
+/// A separate palette from `MedColor` for two reasons, both learned from
+/// looking at the running app:
+///
+/// - **No status colours.** Green, orange and red mean given, skipped and
+///   refused, and red is what the duplicate-dose warning shouts in. A child
+///   named in that red teaches people to stop noticing it.
+/// - **Readable at caption size on white.** The child's name is set small and
+///   uppercase above the row, so yellow is out.
+enum ChildColor: String, CaseIterable, Identifiable {
+    case blue = "007AFF"
+    case teal = "30B0C7"
+    case indigo = "5856D6"
+    case purple = "AF52DE"
+    case pink = "FF2D55"
+    case brown = "A2845E"
+
+    var id: String { rawValue }
+    var color: Color { Color(hex: rawValue) ?? .accentColor }
+
+    static var fallback: ChildColor { .blue }
+
+    /// Picks a colour no sibling is using yet.
     ///
-    /// Deliberately not the medication's colour: two children can be on the
-    /// same medicine, and the row has to tell them apart rather than blend
-    /// them together. Derived rather than stored so it is identical on every
-    /// iPhone without syncing anything.
-    static func forPatient(_ id: UUID) -> Color {
-        allCases[index(forPatient: id)].color
+    /// Assigned once, at creation, and stored on the record — so it is the same
+    /// on every iPhone sharing the plan, and two children cannot collide. An
+    /// earlier version derived it from the child's UUID instead, which looked
+    /// tidier and was wrong: with six colours, two siblings landed on the same
+    /// one often enough to make the labelling useless exactly when it matters.
+    ///
+    /// Beyond `allCases.count` children the palette repeats — by then the names
+    /// are doing the work anyway.
+    static func unused(among taken: [String?]) -> ChildColor {
+        let used = Set(taken.compactMap { $0?.uppercased() })
+        return allCases.first { !used.contains($0.rawValue) } ?? allCases[used.count % allCases.count]
     }
 
-    /// Split out so it can be tested without touching SwiftUI.
+    /// Fallback for a record saved before colours were assigned, so those
+    /// children are still told apart instead of all turning blue.
     ///
     /// Derived from the raw bytes, **not** from `hashValue`: Swift seeds its
     /// hasher per process, so a hash-based colour would change on every launch
     /// and differ between the iPhones sharing a plan.
-    static func index(forPatient id: UUID) -> Int {
+    static func derived(from id: UUID) -> ChildColor {
+        allCases[index(derivedFrom: id)]
+    }
+
+    /// Split out so it can be tested without touching SwiftUI.
+    static func index(derivedFrom id: UUID) -> Int {
         let sum = withUnsafeBytes(of: id.uuid) { bytes in
             bytes.reduce(0) { $0 &+ Int($1) }
         }

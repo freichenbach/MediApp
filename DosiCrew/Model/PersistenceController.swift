@@ -428,7 +428,6 @@ extension PersistenceController {
         let sibling = Patient.makeDefault(in: context)
         sibling.name = "Ben"
         sibling.birthDate = calendar.date(byAdding: .year, value: -3, to: today)
-        sibling.colorHex = MedColor.purple.rawValue
 
         let drops = Medication.make(in: context, patient: sibling)
         drops.name = "Nasentropfen"

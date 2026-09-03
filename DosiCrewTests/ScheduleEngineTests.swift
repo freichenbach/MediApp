@@ -227,20 +227,52 @@ final class ScheduleEngineTests: XCTestCase {
 
 /// The child's colour has to be the same on every device and every launch —
 /// otherwise the one visual cue that separates two children stops being a cue.
-final class PatientColorTests: XCTestCase {
+final class ChildColorTests: XCTestCase {
 
-    func testColourIsDerivedFromTheIdentifierAndStable() {
-        let id = UUID(uuidString: "6E9F1B2A-0C4D-4E5F-8A9B-0C1D2E3F4A5B")!
-        let first = MedColor.index(forPatient: id)
-        for _ in 0..<100 {
-            XCTAssertEqual(MedColor.index(forPatient: id), first, "The colour must not vary between calls")
+    func testSiblingsNeverShareAColour() {
+        var taken: [String?] = []
+        for _ in 0..<ChildColor.allCases.count {
+            taken.append(ChildColor.unused(among: taken).rawValue)
         }
-        XCTAssertTrue((0..<MedColor.allCases.count).contains(first))
+        XCTAssertEqual(Set(taken.compactMap { $0 }).count, ChildColor.allCases.count,
+                       "Two children were given the same colour")
     }
 
-    func testDifferentChildrenUsuallyGetDifferentColours() {
-        let ids = (0..<40).map { _ in UUID() }
-        let distinct = Set(ids.map { MedColor.index(forPatient: $0) })
-        XCTAssertGreaterThan(distinct.count, 1, "Every child ended up with the same colour")
+    func testAColourAlreadyTakenIsSkippedRegardlessOfCase() {
+        let first = ChildColor.allCases[0]
+        let picked = ChildColor.unused(among: [first.rawValue.lowercased()])
+        XCTAssertNotEqual(picked, first, "A lowercase hex must still count as taken")
+    }
+
+    func testAChildWithNoColourYetIsToleratedAndStillSkipped() {
+        let first = ChildColor.allCases[0]
+        let picked = ChildColor.unused(among: [nil, first.rawValue, nil])
+        XCTAssertNotEqual(picked, first)
+    }
+
+    /// Beyond the palette the colours repeat rather than the call failing —
+    /// by then the names are doing the work anyway.
+    func testMoreChildrenThanColoursStillGetOne() {
+        let taken = ChildColor.allCases.map { Optional($0.rawValue) }
+        XCTAssertTrue(ChildColor.allCases.contains(ChildColor.unused(among: taken)))
+    }
+
+    /// The fallback for records saved before colours were assigned.
+    func testDerivedColourIsStableAcrossCalls() {
+        let id = UUID(uuidString: "6E9F1B2A-0C4D-4E5F-8A9B-0C1D2E3F4A5B")!
+        let first = ChildColor.index(derivedFrom: id)
+        for _ in 0..<100 {
+            XCTAssertEqual(ChildColor.index(derivedFrom: id), first, "The colour must not vary between calls")
+        }
+        XCTAssertTrue((0..<ChildColor.allCases.count).contains(first))
+    }
+
+    /// The whole point of the palette: none of the three status colours, so a
+    /// child's name can never be mistaken for a warning.
+    func testPaletteAvoidsTheStatusColours() {
+        let statusColours = Set([MedColor.green, MedColor.orange, MedColor.red].map(\.rawValue))
+        for option in ChildColor.allCases {
+            XCTAssertFalse(statusColours.contains(option.rawValue), "\(option) collides with a dose status colour")
+        }
     }
 }

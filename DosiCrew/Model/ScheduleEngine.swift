@@ -38,6 +38,9 @@ struct MedicationSnapshot: Equatable, Hashable, Identifiable {
     /// always say whose dose it is — on screen and in a notification.
     var patientID: UUID
     var patientName: String
+    /// The child's colour, carried alongside the name for the same reason: the
+    /// day list works from snapshots and never sees a `Patient`.
+    var patientColorHex: String
     var doseAmount: Double
     var doseUnit: String
     var form: MedicationForm
@@ -53,6 +56,7 @@ struct MedicationSnapshot: Equatable, Hashable, Identifiable {
         name: String,
         patientID: UUID = UUID(),
         patientName: String = "",
+        patientColorHex: String = ChildColor.fallback.rawValue,
         doseAmount: Double = 0,
         doseUnit: String = "",
         form: MedicationForm = .tablet,
@@ -67,6 +71,7 @@ struct MedicationSnapshot: Equatable, Hashable, Identifiable {
         self.name = name
         self.patientID = patientID
         self.patientName = patientName
+        self.patientColorHex = patientColorHex
         self.doseAmount = doseAmount
         self.doseUnit = doseUnit
         self.form = form
