@@ -374,6 +374,44 @@ wirklich läuft.
 Danach ist wieder alles CI-getrieben. Erneut nötig ist das nur, wenn das
 Datenmodell wächst — und Änderungen daran sind ohnehin nur additiv möglich.
 
+### Teilen: das Schema muss das Teilen kennen
+
+Beim ersten Einladen kann diese Meldung kommen:
+
+```
+Cannot create new type cloudkit.share in production schema
+```
+
+CloudKit legt beim Teilen einen Datensatztyp `cloudkit.share` an, und in der
+Produktionsumgebung dürfen keine neuen Typen entstehen — Schemaänderungen gehen
+immer über Development und danach per Deploy.
+
+Der Haken: Dieser Typ entsteht in Development nicht durch
+`initializeCloudKitSchema`, sondern erst dadurch, dass tatsächlich einmal geteilt
+wird. Wer das Schema deployt, ohne vorher eine Einladung erzeugt zu haben,
+deployt ein Schema ohne Teilen — was auffällt, sobald jemand einlädt, und keinen
+Moment früher.
+
+**Mit Mac:** die App aus Xcode starten (Debug spricht mit Development), einmal
+*Teilen → Personen einladen* antippen, den Freigabedialog wieder schließen. Dann
+CloudKit Console → *Deploy Schema Changes* → Production.
+
+**Ohne Mac**, über TestFlight, weil ein Release-Build normalerweise nur mit
+Production spricht:
+
+1. Den Release-Workflow starten und `icloud_environment` auf **Development**
+   stellen. Der Lauf warnt, dass dieser Build nicht für andere gedacht ist.
+2. Diesen Build installieren. Er zeigt eine leere App — die Development-Datenbank
+   ist eine andere als die echte. Ein Kind anlegen, *Teilen → Personen einladen*
+   antippen, Dialog schließen. Damit existiert `cloudkit.share` in Development.
+3. CloudKit Console → Schema → *Deploy Schema Changes* → Production.
+4. Den Workflow noch einmal starten, `icloud_environment` wieder auf
+   **Production**. Dieser Build sieht den echten Plan wieder, und das Einladen
+   funktioniert.
+
+Ob der Umweg nötig ist, sagt die Console: Schema → Record Types, Umgebung
+**Development**. Steht `cloudkit.share` schon da, genügt das Deployen.
+
 ### Erinnerungen, die durchkommen
 
 Eine Erinnerung, die im Fokus hängenbleibt, ist keine. Deshalb tragen alle

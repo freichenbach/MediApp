@@ -30,8 +30,14 @@
 	     cannot resolve the container, and the app traps on launch inside
 	     -[CKContainerImplementation _checkRequiredEntitlements]. The export
 	     itself succeeds, so the omission is invisible until a device runs it.
-	     TestFlight and the App Store always talk to Production. -->
+
+	     Filled in per run from the workflow's icloud_environment input, which
+	     defaults to Production — that is the database TestFlight and the App
+	     Store talk to. Development is for one job only: a record type that
+	     only comes into being when the app does the thing, such as
+	     cloudkit.share on the first invitation, has to be created there and
+	     deployed. -->
 	<key>iCloudContainerEnvironment</key>
-	<string>Production</string>
+	<string>__ICLOUD_ENVIRONMENT__</string>
 </dict>
 </plist>

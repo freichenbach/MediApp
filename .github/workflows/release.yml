@@ -9,6 +9,12 @@ on:
         description: "What changed in this build (shown to testers)"
         required: false
         default: ""
+      icloud_environment:
+        description: "Which CloudKit database the build talks to. Development is only for teaching the schema something new."
+        required: false
+        default: Production
+        type: choice
+        options: [Production, Development]
   push:
     tags: ["v*"]
 
@@ -260,8 +266,21 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          # Normally Production: that is the database TestFlight and the App
+          # Store talk to. Development exists for one job — a schema change can
+          # only be made there and then deployed, and some record types only
+          # come into being when the app actually does the thing. `cloudkit.share`
+          # is one: it appears the first time something is shared, and sharing
+          # against Production without it fails with "Cannot create new type
+          # cloudkit.share in production schema".
+          ENVIRONMENT="${{ inputs.icloud_environment || 'Production' }}"
+          echo "iCloud container environment: $ENVIRONMENT"
+          if [ "$ENVIRONMENT" = "Development" ]; then
+            echo "::warning::This build talks to the Development database. It will not see the real plan, and it is not meant for anyone but the person teaching the schema. Follow it with a Production build."
+          fi
           sed -e "s/__TEAM_ID__/$APPLE_TEAM_ID/" \
               -e "s/__PROFILE_NAME__/$PROFILE_NAME/" \
+              -e "s/__ICLOUD_ENVIRONMENT__/$ENVIRONMENT/" \
               Tools/ExportOptions.plist > build/ExportOptions.plist
           plutil -lint build/ExportOptions.plist
           plutil -p build/ExportOptions.plist
