@@ -48,14 +48,62 @@ actor NotificationScheduler {
         UNUserNotificationCenter.current().setNotificationCategories([category])
     }
 
+    private static let baseOptions: UNAuthorizationOptions = [.alert, .sound, .badge]
+
+    /// Asks for critical alerts as well.
+    ///
+    /// Until Apple grants the entitlement the system simply never grants that
+    /// option, so asking costs nothing — and once it is granted, the app makes
+    /// use of it without a new build. Should the request fail *because* of the
+    /// extra option, it is repeated without it: a missed reminder is a worse
+    /// outcome than a quiet one.
     @discardableResult
     func requestAuthorization() async -> Bool {
         do {
-            return try await center.requestAuthorization(options: [.alert, .sound, .badge])
+            return try await center.requestAuthorization(options: Self.baseOptions.union(.criticalAlert))
         } catch {
             PersistenceController.logger.error("Notification authorization failed: \(error.localizedDescription)")
+        }
+        do {
+            return try await center.requestAuthorization(options: Self.baseOptions)
+        } catch {
+            PersistenceController.logger.error("Notification authorization failed without critical alerts too: \(error.localizedDescription)")
             return false
         }
+    }
+
+    // MARK: - How loud a reminder may be
+
+    /// What iOS currently lets a reminder do to a quiet iPhone.
+    ///
+    /// A missed dose is the failure this app exists to prevent, so the reminder
+    /// takes the loudest level it is allowed:
+    ///
+    /// - `.timeSensitive` breaks through Focus and Do Not Disturb. It does
+    ///   **not** ring against the mute switch — no entitlement changes that.
+    /// - `.critical` does ring against the mute switch. Apple grants it case by
+    ///   case, so this case stays unreachable until the entitlement is in the
+    ///   build and the person has allowed it.
+    enum Urgency {
+        case timeSensitive
+        case critical
+
+        func apply(to content: UNMutableNotificationContent) {
+            switch self {
+            case .timeSensitive:
+                content.interruptionLevel = .timeSensitive
+                content.sound = .default
+            case .critical:
+                content.interruptionLevel = .critical
+                // Not full volume: this has to wake someone in the next room,
+                // not startle the child it is about.
+                content.sound = .defaultCriticalSound(withAudioVolume: 0.8)
+            }
+        }
+    }
+
+    private static func urgency(for settings: UNNotificationSettings) -> Urgency {
+        settings.criticalAlertSetting == .enabled ? .critical : .timeSensitive
     }
 
     // MARK: - Scheduling
@@ -72,15 +120,21 @@ actor NotificationScheduler {
             return
         }
 
-        let settings = await center.notificationSettings()
+        var settings = await center.notificationSettings()
         switch settings.authorizationStatus {
         case .notDetermined:
             guard await requestAuthorization() else { return }
+            // Re-read: what was just granted decides how loud the reminders
+            // below may be, and the settings fetched before the prompt cannot
+            // know that yet.
+            settings = await center.notificationSettings()
         case .denied:
             return
         default:
             break
         }
+
+        let urgency = Self.urgency(for: settings)
 
         let plan = await Self.loadPlanData()
         guard !plan.medications.isEmpty else {
@@ -100,7 +154,7 @@ actor NotificationScheduler {
         for slot in slots {
             guard let medication = plan.medications.first(where: { $0.id == slot.medicationID }) else { continue }
             guard !plan.isHandled(slot) else { continue }
-            requests.append(contentsOf: Self.requests(for: slot, medication: medication))
+            requests.append(contentsOf: Self.requests(for: slot, medication: medication, urgency: urgency))
         }
 
         center.removeAllPendingNotificationRequests()
@@ -115,11 +169,14 @@ actor NotificationScheduler {
 
     /// Re-fires a single reminder a quarter of an hour later.
     func snooze(medicationID: UUID, medicationName: String, scheduledAt: Date) async {
+        let settings = await center.notificationSettings()
+        let urgency = Self.urgency(for: settings)
+
         let content = UNMutableNotificationContent()
         content.title = medicationName
         content.body = String(localized: "Still open — please give this dose.")
-        content.sound = .default
         content.categoryIdentifier = Self.categoryIdentifier
+        urgency.apply(to: content)
         content.userInfo = Self.userInfo(medicationID: medicationID, scheduledAt: scheduledAt)
 
         let request = UNNotificationRequest(
@@ -134,17 +191,18 @@ actor NotificationScheduler {
 
     private static func requests(
         for slot: PlannedSlot,
-        medication: MedicationSnapshot
+        medication: MedicationSnapshot,
+        urgency: Urgency
     ) -> [UNNotificationRequest] {
         var result: [UNNotificationRequest] = []
 
         let content = UNMutableNotificationContent()
         content.title = medication.name
         content.body = body(for: medication)
-        content.sound = .default
         content.categoryIdentifier = categoryIdentifier
         content.userInfo = userInfo(medicationID: medication.id, scheduledAt: slot.scheduledAt)
         content.threadIdentifier = medication.id.uuidString
+        urgency.apply(to: content)
 
         result.append(
             UNNotificationRequest(
@@ -168,10 +226,10 @@ actor NotificationScheduler {
         let overdueContent = UNMutableNotificationContent()
         overdueContent.title = medication.name
         overdueContent.body = String(localized: "Not ticked off yet — has anyone given this dose?")
-        overdueContent.sound = .default
         overdueContent.categoryIdentifier = categoryIdentifier
         overdueContent.userInfo = userInfo(medicationID: medication.id, scheduledAt: slot.scheduledAt)
         overdueContent.threadIdentifier = medication.id.uuidString
+        urgency.apply(to: overdueContent)
 
         result.append(
             UNNotificationRequest(
@@ -231,35 +289,34 @@ actor NotificationScheduler {
     }
 
     /// Reads on a background context so scheduling never blocks the UI.
+    ///
+    /// Returns an empty plan when no store is open — scheduling nothing is the
+    /// right answer then, and asking Core Data anyway is the wrong one.
     private static func loadPlanData() async -> PlanData {
-        let container = PersistenceController.shared.container
-        return await withCheckedContinuation { continuation in
-            let context = container.newBackgroundContext()
-            context.perform {
-                // Every child's medications, not just the first patient's.
-                let medicationRequest = NSFetchRequest<Medication>(entityName: "Medication")
-                medicationRequest.predicate = NSPredicate(format: "isArchived == NO")
-                let medications = ((try? context.fetch(medicationRequest)) ?? []).map { $0.snapshot() }
+        let empty = PlanData(medications: [], handledSlots: [])
+        let plan = await PersistenceController.shared.withBackgroundContext { context -> PlanData in
+            // Every child's medications, not just the first patient's.
+            let medicationRequest = NSFetchRequest<Medication>(entityName: "Medication")
+            medicationRequest.predicate = NSPredicate(format: "isArchived == NO")
+            let medications = ((try? context.fetch(medicationRequest)) ?? []).map { $0.snapshot() }
 
-                // Only slots inside the horizon can still be pending, so the log
-                // fetch is bounded rather than reading the whole history.
-                let horizonEnd = Date().addingTimeInterval(TimeInterval(horizonInDays + 1) * 86_400)
-                let logRequest = NSFetchRequest<DoseLog>(entityName: "DoseLog")
-                logRequest.predicate = NSPredicate(
-                    format: "scheduledAt != nil AND scheduledAt >= %@ AND scheduledAt <= %@",
-                    Date().addingTimeInterval(-86_400) as NSDate,
-                    horizonEnd as NSDate
-                )
-                let logs = (try? context.fetch(logRequest)) ?? []
-                let handled = Set(logs.compactMap { log -> String? in
-                    guard let medicationID = log.medication?.id, let scheduledAt = log.scheduledAt else { return nil }
-                    return PlanData.key(medicationID: medicationID, scheduledAt: scheduledAt)
-                })
+            // Only slots inside the horizon can still be pending, so the log
+            // fetch is bounded rather than reading the whole history.
+            let horizonEnd = Date().addingTimeInterval(TimeInterval(horizonInDays + 1) * 86_400)
+            let logRequest = NSFetchRequest<DoseLog>(entityName: "DoseLog")
+            logRequest.predicate = NSPredicate(
+                format: "scheduledAt != nil AND scheduledAt >= %@ AND scheduledAt <= %@",
+                Date().addingTimeInterval(-86_400) as NSDate,
+                horizonEnd as NSDate
+            )
+            let logs = (try? context.fetch(logRequest)) ?? []
+            let handled = Set(logs.compactMap { log -> String? in
+                guard let medicationID = log.medication?.id, let scheduledAt = log.scheduledAt else { return nil }
+                return PlanData.key(medicationID: medicationID, scheduledAt: scheduledAt)
+            })
 
-                continuation.resume(
-                    returning: PlanData(medications: medications, handledSlots: handled)
-                )
-            }
+            return PlanData(medications: medications, handledSlots: handled)
         }
+        return plan ?? empty
     }
 }

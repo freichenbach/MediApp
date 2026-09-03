@@ -17,6 +17,8 @@ struct SettingsView: View {
     @AppStorage(AppSettings.overdueRemindersKey) private var overdueReminders: Bool = true
 
     @State private var authorizationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var timeSensitiveSetting: UNNotificationSetting = .notSupported
+    @State private var criticalAlertSetting: UNNotificationSetting = .notSupported
 
     var body: some View {
         NavigationStack {
@@ -61,6 +63,8 @@ struct SettingsView: View {
                         Label("Notifications are switched off for DosiCrew in iOS Settings.", systemImage: "bell.slash")
                             .font(.footnote)
                             .foregroundStyle(.orange)
+                    } else {
+                        loudnessStatus
                     }
                 } header: {
                     Text("Reminders")
@@ -109,6 +113,35 @@ struct SettingsView: View {
         }
     }
 
+    /// Says what a reminder can actually do to a quiet iPhone.
+    ///
+    /// Worth a line of its own because the honest answer is not the one people
+    /// assume: a reminder gets past Focus and Do Not Disturb, but the mute
+    /// switch silences it until Apple grants the critical-alert entitlement.
+    /// Better to say so here than to let somebody rely on a ring that never
+    /// comes.
+    @ViewBuilder
+    private var loudnessStatus: some View {
+        if criticalAlertSetting == .enabled {
+            Label("Rings even when the iPhone is silenced.", systemImage: "bell.badge.fill")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } else if timeSensitiveSetting == .enabled {
+            Label("Gets past Focus and Do Not Disturb. A silenced iPhone still stays silent.", systemImage: "bell.and.waves.left.and.right")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } else if timeSensitiveSetting == .disabled {
+            VStack(alignment: .leading, spacing: 4) {
+                Label("Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back.", systemImage: "bell.slash")
+                    .foregroundStyle(.orange)
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    Link("Open iOS Settings", destination: url)
+                }
+            }
+            .font(.footnote)
+        }
+    }
+
     private func warning(_ text: LocalizedStringKey) -> some View {
         Label(text, systemImage: "exclamationmark.triangle.fill")
             .foregroundStyle(.orange)
@@ -117,7 +150,11 @@ struct SettingsView: View {
     private func load() {
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
-            await MainActor.run { authorizationStatus = settings.authorizationStatus }
+            await MainActor.run {
+                authorizationStatus = settings.authorizationStatus
+                timeSensitiveSetting = settings.timeSensitiveSetting
+                criticalAlertSetting = settings.criticalAlertSetting
+            }
         }
     }
 

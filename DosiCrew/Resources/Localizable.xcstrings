@@ -1312,6 +1312,29 @@
         }
       }
     },
+    "Gets past Focus and Do Not Disturb. A silenced iPhone still stays silent.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommt durch Fokus und „Nicht stören“. Ein stummgeschaltetes iPhone bleibt trotzdem still."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gets past Focus and Do Not Disturb. A silenced iPhone still stays silent."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasa por Concentración y No molestar. Un iPhone en silencio sigue en silencio."
+          }
+        }
+      }
+    },
     "Given": {
       "extractionState": "manual",
       "localizations": {
@@ -2439,6 +2462,29 @@
         }
       }
     },
+    "Open iOS Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS-Einstellungen öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open iOS Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir los Ajustes de iOS"
+          }
+        }
+      }
+    },
     "Optional": {
       "extractionState": "manual",
       "localizations": {
@@ -2964,6 +3010,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Restaurar"
+          }
+        }
+      }
+    },
+    "Rings even when the iPhone is silenced.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klingelt auch, wenn das iPhone stummgeschaltet ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rings even when the iPhone is silenced."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suena aunque el iPhone esté en silencio."
           }
         }
       }
@@ -3608,6 +3677,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "El plan desaparece de este iPhone. Los demás lo conservan."
+          }
+        }
+      }
+    },
+    "Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitkritische Mitteilungen sind für DosiCrew ausgeschaltet — im Fokus werden Erinnerungen deshalb zurückgehalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las notificaciones urgentes están desactivadas para DosiCrew, así que Concentración retendrá los recordatorios."
           }
         }
       }
