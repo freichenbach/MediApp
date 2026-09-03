@@ -1,3 +1,4 @@
+import CoreData
 import XCTest
 @testable import DosiCrew
 
@@ -329,5 +330,49 @@ final class NewScheduleTests: XCTestCase {
         let medication = Medication.make(in: context, patient: patient)
         let rule = ScheduleRule.make(in: context, medication: medication)
         XCTAssertTrue(rule.minutes.isEmpty, "A guessed time has to be deleted before the real one helps")
+    }
+}
+
+/// The store descriptions have to be addable to a coordinator. Sounds obvious;
+/// it was not.
+///
+/// Both CloudKit stores refused to open on a real device because they named a
+/// configuration — "Default" — that `DosiCrew.xcdatamodel` does not declare.
+/// The app then fell back to a local store and quietly stopped syncing, and the
+/// schema bootstrap answered with a follow-on error three steps downstream.
+/// Nothing in the unit tests noticed, because nothing ever tried to add these
+/// descriptions to anything.
+final class StoreDescriptionTests: XCTestCase {
+
+    /// Adds each description in memory and without CloudKit. That strips away
+    /// everything a test machine cannot have — an iCloud account, entitlements,
+    /// a container — and keeps the one step that failed: resolving the
+    /// configuration name against the model.
+    func testEveryStoreDescriptionCanActuallyBeAdded() throws {
+        let model = PersistenceController(inMemory: true).container.managedObjectModel
+        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
+
+        for description in PersistenceController.cloudKitStoreDescriptions() {
+            XCTAssertNoThrow(
+                try coordinator.addPersistentStore(
+                    type: .inMemory,
+                    configuration: description.configuration,
+                    at: URL(fileURLWithPath: "/dev/null")
+                ),
+                "Cannot open \(description.url?.lastPathComponent ?? "?") with configuration "
+                    + "\(description.configuration ?? "<default>")"
+            )
+        }
+    }
+
+    /// Guards the other direction: if someone does name a configuration later,
+    /// the model has to declare it.
+    func testAnyNamedConfigurationExistsInTheModel() {
+        let model = PersistenceController(inMemory: true).container.managedObjectModel
+        for description in PersistenceController.cloudKitStoreDescriptions() {
+            guard let name = description.configuration else { continue }
+            XCTAssertTrue(model.configurations.contains(name),
+                          "The model declares no configuration named \(name)")
+        }
     }
 }

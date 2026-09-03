@@ -170,17 +170,27 @@ final class PersistenceController {
         }
     }
 
-    private static func cloudKitStoreDescriptions() -> [NSPersistentStoreDescription] {
+    /// Internal rather than private so a test can add these to a coordinator and
+    /// prove they are actually addable. See `StoreDescriptionTests`.
+    ///
+    /// Deliberately **no** `configuration` on either description. Setting it to
+    /// "Default" — as several CloudKit examples do — makes Core Data look for a
+    /// configuration by that literal name, and `DosiCrew.xcdatamodel` declares
+    /// none. Both stores then refuse to open with "Unable to find a
+    /// configuration named 'Default' in the specified managed object model",
+    /// the app falls back to a local store, and nothing syncs. Left unset, the
+    /// default configuration applies, which holds every entity — which is what
+    /// both stores need anyway: the same entities in two files, one per
+    /// CloudKit scope.
+    static func cloudKitStoreDescriptions() -> [NSPersistentStoreDescription] {
         let baseURL = NSPersistentContainer.defaultDirectoryURL()
 
         let privateDescription = NSPersistentStoreDescription(url: baseURL.appendingPathComponent("private.sqlite"))
-        privateDescription.configuration = "Default"
         let privateOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: cloudKitContainerIdentifier)
         privateOptions.databaseScope = .private
         privateDescription.cloudKitContainerOptions = privateOptions
 
         let sharedDescription = NSPersistentStoreDescription(url: baseURL.appendingPathComponent("shared.sqlite"))
-        sharedDescription.configuration = "Default"
         let sharedOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: cloudKitContainerIdentifier)
         sharedOptions.databaseScope = .shared
         sharedDescription.cloudKitContainerOptions = sharedOptions
@@ -286,16 +296,20 @@ final class PersistenceController {
 
             \(detail)
 
-            Worth checking, in this order:
+            Read the NSLocalizedFailureReason above first — it usually names
+            the cause outright. The list below is only for when it does not:
 
-            1. Signing & Capabilities → Team. A *Personal Team* cannot use
+            1. A configuration named in cloudKitStoreDescriptions() that the
+               model does not declare. This one already happened: "Default"
+               looks harmless and is not.
+            2. Signing & Capabilities → Team. A *Personal Team* cannot use
                CloudKit at all; the entitlement is dropped when signing and the
                store then fails to load. It must be the real team.
-            2. Signing & Capabilities → iCloud → Containers. The iCloud
+            3. Signing & Capabilities → iCloud → Containers. The iCloud
                checkbox on the App ID is not the same thing as an existing
                container. \(Self.cloudKitContainerIdentifier) has to be listed
                there and ticked.
-            3. The device or simulator has to be signed into iCloud for the
+            4. The device or simulator has to be signed into iCloud for the
                schema to be written — though on its own that does not stop the
                stores from loading.
             """))
