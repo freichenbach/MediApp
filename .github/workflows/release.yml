@@ -35,6 +35,8 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          DIST_CERT_P12_BASE64: ${{ secrets.DIST_CERT_P12_BASE64 }}
+          DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
         run: |
           missing=""
           for name in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID; do
@@ -56,6 +58,16 @@ jobs:
           # so neither form is required — one of them is.
           if [ -z "$ASC_KEY_P8" ] && [ -z "$ASC_KEY_P8_BASE64" ]; then
             echo "::error::The private key is missing. Set either ASC_KEY_P8 (the contents of the .p8 file, including the BEGIN and END lines) or ASC_KEY_P8_BASE64 (the same file, base64 encoded). One of the two is enough."
+            exit 1
+          fi
+          # The distribution certificate. Runs 12 and 13 established why it has
+          # to be supplied rather than created on the runner: cloud signing
+          # issues the certificate but keeps its private key at Apple, so
+          # `security find-identity` reports "0 valid identities found" no
+          # matter which keychain it searches — and an archive cannot be signed
+          # with a key that is not there.
+          if [ -z "$DIST_CERT_P12_BASE64" ] || [ -z "$DIST_CERT_PASSWORD" ]; then
+            echo "::error::The distribution certificate is missing. Set DIST_CERT_P12_BASE64 (the .p12 file, base64 encoded) and DIST_CERT_PASSWORD (the password it was exported with). See the 'Zertifikat hinterlegen' section of README.md for how to make one without a Mac."
             exit 1
           fi
           echo "Signing secrets are set."
@@ -111,44 +123,71 @@ jobs:
             exit 1
           fi
 
-      - name: Give the runner a keychain to put the certificate in
+      - name: Install the distribution certificate
+        env:
+          DIST_CERT_P12_BASE64: ${{ secrets.DIST_CERT_P12_BASE64 }}
+          DIST_CERT_PASSWORD: ${{ secrets.DIST_CERT_PASSWORD }}
         run: |
-          # Run 12 got as far as a perfect App Store profile and then:
+          # Why the certificate is carried in rather than made here:
           #
-          #   0 valid identities found
+          # Cloud signing (-allowProvisioningUpdates) does issue a distribution
+          # certificate, and the export step has used it happily since run 4.
+          # But it keeps the private key at Apple. Run 12 looked for it and
+          # found nothing; run 13 gave the runner a fresh, unlocked keychain,
+          # put it first in the search list, and still got:
           #
-          # Cloud signing had just created a distribution certificate, and it
-          # was nowhere to be found. A macOS runner starts with no unlocked
-          # default keychain of its own, so there is no obvious place for a new
-          # certificate to land and stay readable — and `security find-identity`
-          # only searches the user keychain list.
+          #   0 identities found
           #
-          # So one is made here, unlocked, and put at the front of that list
-          # before anything asks Apple for a certificate.
-          #
-          # The password is random and dies with the runner. It guards a
-          # keychain that holds one throwaway certificate for the length of one
-          # job; it is not a secret worth managing, but an empty password makes
-          # `security` behave differently, so it gets a real one.
+          # That settles it. Nothing on the runner can sign locally unless a
+          # real certificate with its private key is brought along — and the
+          # archive has to be signed locally, because that is the only moment
+          # the entitlements get written into the binary.
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
-          PASSWORD=$(uuidgen)
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          P12="$RUNNER_TEMP/distribution.p12"
 
-          security create-keychain -p "$PASSWORD" "$KEYCHAIN"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           # Without this the keychain re-locks after five minutes of idling and
-          # the archive step fails in the middle with a password prompt nobody
-          # can answer.
+          # the archive fails in the middle on a password prompt nobody can
+          # answer.
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
-          security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
 
-          # First in the search list, and the default — the one a tool writes to
-          # when it is not told otherwise. The existing keychains stay in the
-          # list so nothing else on the runner breaks.
+          # First in the search list and the default one; the runner's existing
+          # keychains stay in the list so nothing else breaks.
           EXISTING=$(security list-keychains -d user | sed -e 's/^ *"//' -e 's/"$//')
           security list-keychains -d user -s "$KEYCHAIN" $EXISTING
           security default-keychain -s "$KEYCHAIN"
 
-          security list-keychains -d user
-          echo "Keychain ready."
+          printf '%s' "$DIST_CERT_P12_BASE64" | base64 --decode > "$P12"
+          if [ ! -s "$P12" ]; then
+            echo "::error::DIST_CERT_P12_BASE64 did not decode to anything. It must be the base64 of the .p12 file, on one line."
+            exit 1
+          fi
+
+          if ! security import "$P12" -k "$KEYCHAIN" -P "$DIST_CERT_PASSWORD" \
+                 -T /usr/bin/codesign -T /usr/bin/security -A 2>import.log; then
+            cat import.log
+            echo "::error::The certificate could not be imported. Two usual causes: DIST_CERT_PASSWORD does not match the password the .p12 was exported with, or the .p12 was written by OpenSSL 3 without -legacy, whose encryption macOS cannot read. README.md gives the exact openssl command."
+            exit 1
+          fi
+          rm -f "$P12"
+
+          # Without this, codesign stops and asks for the keychain password the
+          # first time it uses the key — which on a runner means hanging until
+          # the job times out.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+
+          echo "--- code signing identities ---"
+          security find-identity -v -p codesigning
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | sed -E 's/.*"(.*)"/\1/')
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::The .p12 imported, but it holds no Apple Distribution identity. Check that the certificate downloaded from the portal was of type 'Apple Distribution' and that the .p12 was built from it together with its private key."
+            exit 1
+          fi
+          echo "Identity: $IDENTITY"
+          echo "SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
 
       - name: Prepare export options
         env:
@@ -175,9 +214,9 @@ jobs:
           #
           # The way out is the one thing that has worked since run 4: cloud
           # signing at export time, which needs no device. It only needs an
-          # archive to work on — so this is that archive, and its own export
-          # is thrown away. What it leaves behind is the point: a distribution
-          # certificate in the keychain and an App Store profile on disk.
+          # archive to work on — so this is that archive, and its own export is
+          # thrown away. What it leaves behind is the point: the App Store
+          # provisioning profile, on disk, where the second archive can name it.
           #
           # TestFlight rejects a build number it has already seen, so it comes
           # from the run counter rather than the checked-in value.
@@ -191,7 +230,7 @@ jobs:
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             CODE_SIGNING_ALLOWED=NO
 
-      - name: Have cloud signing create the certificate and the profile
+      - name: Fetch the App Store profile by way of a throwaway export
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -203,8 +242,9 @@ jobs:
           # with the four lines the profile brings on its own. That is the app
           # Build 6 was, and it trapped on launch.
           #
-          # What it does do is ask Apple for the certificate and the App Store
-          # profile, and put both where the next archive can use them.
+          # What it does do is make Apple issue the App Store profile for this
+          # bundle identifier and put it where the next archive can name it.
+          # The certificate is already in the keychain by now, from the secret.
           set +e
           xcodebuild -exportArchive \
             -archivePath build/pass1.xcarchive \
@@ -249,25 +289,7 @@ jobs:
           mkdir -p "$DEST"
           cp "$PROFILE" "$DEST/$UUID.mobileprovision"
 
-          # The certificate cloud signing just created. Everything is printed
-          # before it is judged: run 12 failed on "0 valid identities found"
-          # with no way to tell an empty keychain from an unsearched one.
-          echo "--- keychains searched ---"
-          security list-keychains -d user
-          echo "--- code signing identities ---"
-          security find-identity -v -p codesigning || true
-          echo "--- all identities, valid or not ---"
-          security find-identity -p codesigning || true
-
-          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | sed -E 's/.*"(.*)"/\1/')
-          if [ -z "$IDENTITY" ]; then
-            echo "::error::Cloud signing left no usable Apple Distribution certificate in the keychain, so the archive cannot be signed locally. The listings above show what is there. If the keychain really is empty, cloud signing keeps the private key at Apple and the only remaining route is a registered device, which lets automatic signing produce a signed archive."
-            exit 1
-          fi
-          echo "Identity: $IDENTITY"
-
           echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
-          echo "SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
 
       - name: Archive again, signed with that profile
         env:

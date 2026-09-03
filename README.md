@@ -123,6 +123,8 @@ Dann die Secrets unter *Settings → Secrets and variables → Actions* →
 | `ASC_KEY_ID` | Key-ID des API-Schlüssels |
 | `ASC_ISSUER_ID` | Issuer-ID, gilt fürs ganze Team |
 | `ASC_KEY_P8` | Inhalt der `.p8`-Datei, mitsamt der BEGIN- und END-Zeilen |
+| `DIST_CERT_P12_BASE64` | das Distributions-Zertifikat als `.p12`, base64-kodiert (siehe unten) |
+| `DIST_CERT_PASSWORD` | das Passwort, mit dem die `.p12` exportiert wurde |
 
 Für den Schlüssel gibt es zwei Wege, einer genügt: `ASC_KEY_P8` mit dem rohen
 Dateiinhalt — GitHub-Secrets nehmen mehrzeilige Werte — oder
@@ -133,6 +135,87 @@ Fehlt etwas, bricht der Workflow im ersten Schritt mit einer klaren Meldung ab
 statt später beim Signieren. Direkt danach prüft er, ob die abgelegte Datei
 wirklich mit `-----BEGIN PRIVATE KEY-----` beginnt — das fängt einen halb
 kopierten Text oder einen Wert im falschen Secret sofort ab.
+
+### Zertifikat hinterlegen
+
+Das Archiv muss auf dem Runner signiert werden, denn nur beim Signieren
+schreibt Xcode die Entitlements ins Binary — den iCloud-Container, CloudKit,
+Time Sensitive. Ein Build ohne sie startet nicht, sondern bricht sofort in
+`-[CKContainerImplementation _checkRequiredEntitlements]` ab.
+
+Dafür braucht der Runner ein echtes Zertifikat samt privatem Schlüssel.
+`xcodebuild -allowProvisioningUpdates` erzeugt zwar eines, behält den privaten
+Schlüssel aber bei Apple; auf dem Runner meldet `security find-identity`
+deshalb `0 valid identities found`, auch mit frisch angelegtem, entsperrtem
+Schlüsselbund. Das Zertifikat muss also mitgebracht werden.
+
+Das geht ohne Mac. Gebraucht wird **OpenSSL** — unter Windows am einfachsten
+über [Git für Windows](https://git-scm.com/download/win); danach im
+Startmenü **Git Bash** öffnen. Alle Befehle unten laufen dort.
+
+**1. Schlüssel und Zertifikatsantrag erzeugen**
+
+```bash
+mkdir -p ~/dosicrew-cert && cd ~/dosicrew-cert
+
+openssl genrsa -out distribution.key 2048
+openssl req -new -key distribution.key -out distribution.csr \
+  -subj "/emailAddress=DEINE@MAIL.DE/CN=DosiCrew Distribution/C=DE"
+```
+
+`distribution.key` ist der private Schlüssel. Er verlässt den Rechner nicht und
+lässt sich nicht wiederherstellen — geht er verloren, wird das Zertifikat
+wertlos und muss neu erzeugt werden.
+
+**2. Zertifikat bei Apple abholen**
+
+developer.apple.com → *Certificates, Identifiers & Profiles* → **Certificates**
+→ **+** → **Apple Distribution** → *Continue* → bei *Upload a Certificate
+Signing Request* die Datei `distribution.csr` hochladen → *Continue* →
+**Download**. Es kommt eine Datei `distribution.cer` heraus; sie gehört ins
+selbe Verzeichnis.
+
+> Apple erlaubt höchstens drei Distributions-Zertifikate gleichzeitig. Die
+> Läufe 4 bis 13 haben über Cloud Signing möglicherweise schon welche angelegt.
+> Ist der Knopf ausgegraut, in derselben Liste ein altes auswählen und
+> *Revoke* — die dazugehörigen privaten Schlüssel liegen ohnehin bei Apple und
+> sind für uns nicht zu gebrauchen.
+
+**3. Beides zu einer `.p12` zusammenfügen**
+
+```bash
+openssl x509 -inform DER -in distribution.cer -out distribution.pem
+
+openssl pkcs12 -export -legacy \
+  -inkey distribution.key \
+  -in distribution.pem \
+  -out distribution.p12 \
+  -name "Apple Distribution"
+```
+
+Der letzte Befehl fragt zweimal nach einem Passwort. Es darf beliebig sein,
+muss aber gemerkt werden — es wird gleich zum Secret `DIST_CERT_PASSWORD`.
+
+**`-legacy` ist nicht optional.** OpenSSL 3 verschlüsselt `.p12`-Dateien sonst
+mit einem Verfahren, das macOS nicht lesen kann; der Import auf dem Runner
+scheitert dann mit einer Meldung, die nach einem falschen Passwort aussieht.
+
+**4. Base64 für das Secret**
+
+```bash
+base64 -w0 distribution.p12 > distribution.p12.txt
+```
+
+Den Inhalt von `distribution.p12.txt` — eine einzige lange Zeile — als
+`DIST_CERT_P12_BASE64` ablegen, das Passwort aus Schritt 3 als
+`DIST_CERT_PASSWORD`.
+
+Danach `distribution.key` und `distribution.p12` sicher aufbewahren oder
+löschen; im Repository haben sie nichts zu suchen.
+
+Der Workflow prüft beim Import, ob eine Identität vom Typ *Apple Distribution*
+herauskommt, und nennt bei einem Fehlschlag die beiden realistischen Ursachen —
+falsches Passwort oder eine `.p12` ohne `-legacy`.
 
 ### CloudKit-Schema anlegen
 
