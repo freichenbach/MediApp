@@ -43,6 +43,21 @@ final class PersistenceController {
         ProcessInfo.processInfo.arguments.contains("-DosiCrewUITestSeed")
     }
 
+    /// The one-off run that creates the CloudKit development schema.
+    ///
+    /// `init` has to know about it too, not just the schema step: this run must
+    /// not be rescued by the local fallback store. See `loadLocalFallbackStore`.
+    static var isBootstrappingCloudKitSchema: Bool {
+        // Always false in a release binary, so every behaviour that hangs off
+        // this flag is guaranteed to stay out of TestFlight and the App Store
+        // without an #if at each call site.
+        #if DEBUG
+        return ProcessInfo.processInfo.arguments.contains("-DosiCrewInitializeCloudKitSchema")
+        #else
+        return false
+        #endif
+    }
+
     var viewContext: NSManagedObjectContext { container.viewContext }
 
     /// Reports whether mirroring is actually exchanging anything, so the UI can
@@ -83,7 +98,12 @@ final class PersistenceController {
         }
 
         if !useInMemoryStore && container.persistentStoreCoordinator.persistentStores.isEmpty {
-            loadLocalFallbackStore()
+            // Everything except the schema bootstrap: keep the plan usable
+            // without syncing. That run is the exception — rescuing it would
+            // replace the CloudKit stores with a plain one and turn a clear
+            // "the container is not available, because …" into a baffling
+            // "no stores are configured to use CloudKit".
+            if !Self.isBootstrappingCloudKitSchema { loadLocalFallbackStore() }
         }
 
         // Only meaningful once it is clear whether mirroring is running at all.
@@ -189,70 +209,95 @@ final class PersistenceController {
     ///
     /// See the "CloudKit-Schema anlegen" runbook in README.md.
     private func initializeCloudKitSchemaIfRequested() {
-        guard ProcessInfo.processInfo.arguments.contains("-DosiCrewInitializeCloudKitSchema") else { return }
+        guard Self.isBootstrappingCloudKitSchema else { return }
+
+        // Ask first. Without this check Core Data answers a coordinator that
+        // holds no mirrored store with "no stores in the coordinator are
+        // configured to use CloudKit" — true, unhelpful, and three steps
+        // downstream of whatever actually went wrong.
+        guard hasCloudKitStore else {
+            reportBootstrapStoreFailure()
+            return
+        }
+
         // Printed as well as logged: this runs once, by hand, and the person
         // doing it needs an unambiguous answer in the Xcode console rather
         // than having to go hunting in the unified log.
         do {
             try container.initializeCloudKitSchema(options: [])
-            let message = """
-
-                ────────────────────────────────────────────────────────────
+            print(Self.frame("""
                 CloudKit development schema initialized.
                 Container: \(Self.cloudKitContainerIdentifier)
 
                 Next: icloud.developer.apple.com → CloudKit Console → this
                 container → Schema → Deploy Schema Changes → Production.
                 Then remove the -DosiCrewInitializeCloudKitSchema argument.
-                ────────────────────────────────────────────────────────────
-
-                """
-            print(message)
+                """))
             Self.logger.notice("CloudKit development schema initialized for \(Self.cloudKitContainerIdentifier)")
         } catch {
-            print("\n!!! Initializing the CloudKit schema FAILED: \(error)\n")
+            print(Self.frame("""
+                Initializing the CloudKit schema FAILED.
+                Container: \(Self.cloudKitContainerIdentifier)
+
+                \(error)
+                """))
             Self.logger.error("Initializing the CloudKit schema failed: \(error.localizedDescription)")
         }
     }
     #endif
 
-    // MARK: - Background work
-
-    /// True when at least one store is actually open.
+    /// Whether any loaded store actually mirrors to CloudKit.
     ///
-    /// Core Data answers a context whose coordinator has no stores with an
-    /// Objective-C exception, not a Swift error — so it cannot be caught, and
-    /// the app is killed instead of returning a failure. Every path that may
-    /// run before the stack is up, or after it failed to come up, has to ask
-    /// first.
-    var isStoreLoaded: Bool {
-        !container.persistentStoreCoordinator.persistentStores.isEmpty
-    }
-
-    /// Runs `work` on a background context, or returns `nil` when no store is
-    /// open.
-    ///
-    /// The reason this exists rather than each caller building its own context:
-    /// the paths that need one are exactly the paths that can run at the worst
-    /// moment — a reminder tapped on the lock screen, a silent push waking the
-    /// app — where "the stack is up" is an assumption and not a fact.
-    @discardableResult
-    func withBackgroundContext<T>(
-        author: String? = nil,
-        _ work: @escaping (NSManagedObjectContext) -> T
-    ) async -> T? {
-        guard isStoreLoaded else {
-            Self.logger.error("Background work skipped: no persistent store is loaded")
-            return nil
-        }
-        return await withCheckedContinuation { (continuation: CheckedContinuation<T?, Never>) in
-            let context = container.newBackgroundContext()
-            context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
-            if let author { context.transactionAuthor = author }
-            context.perform {
-                continuation.resume(returning: work(context))
+    /// Matched by URL against the descriptions, because a loaded
+    /// `NSPersistentStore` does not carry its CloudKit options. False both when
+    /// nothing loaded and when the local fallback replaced the descriptions.
+    var hasCloudKitStore: Bool {
+        container.persistentStoreCoordinator.persistentStores.contains { store in
+            guard let url = store.url else { return false }
+            return container.persistentStoreDescriptions.contains {
+                $0.url == url && $0.cloudKitContainerOptions != nil
             }
         }
+    }
+
+    /// Says why the mirrored stores did not open, during the one run that
+    /// exists to open them.
+    ///
+    /// The ordinary app swallows this on purpose — it falls back to a local
+    /// store so a dose can still be recorded, and a person holding a sick child
+    /// is not helped by an `NSError`. The bootstrap run is the opposite case:
+    /// it is a diagnosis, performed once, by someone sitting at a Mac who can
+    /// act on the answer. So here the error is printed in full, with the
+    /// handful of causes that actually produce it.
+    private func reportBootstrapStoreFailure() {
+        let detail = loadError.map { String(describing: $0) } ?? "The stores did not load, and Core Data reported no error."
+        print(Self.frame("""
+            The CloudKit stores did not open — schema NOT initialized.
+            Container: \(Self.cloudKitContainerIdentifier)
+
+            \(detail)
+
+            Worth checking, in this order:
+
+            1. Signing & Capabilities → Team. A *Personal Team* cannot use
+               CloudKit at all; the entitlement is dropped when signing and the
+               store then fails to load. It must be the real team.
+            2. Signing & Capabilities → iCloud → Containers. The iCloud
+               checkbox on the App ID is not the same thing as an existing
+               container. \(Self.cloudKitContainerIdentifier) has to be listed
+               there and ticked.
+            3. The device or simulator has to be signed into iCloud for the
+               schema to be written — though on its own that does not stop the
+               stores from loading.
+            """))
+        Self.logger.error("CloudKit stores unavailable during schema bootstrap: \(detail)")
+    }
+
+    /// One shape for both outcomes, so neither scrolls past unnoticed in a
+    /// console full of Core Data chatter.
+    private static func frame(_ body: String) -> String {
+        let rule = String(repeating: "─", count: 60)
+        return "\n\(rule)\n\(body)\n\(rule)\n"
     }
 
     // MARK: - Saving
