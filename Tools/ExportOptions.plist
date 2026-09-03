@@ -6,8 +6,19 @@
 	<string>app-store-connect</string>
 	<key>destination</key>
 	<string>export</string>
+	<!-- Manual, because the whole pipeline now signs with a certificate and a
+	     profile that were made by hand. Automatic would reach back to cloud
+	     signing, whose profiles are marked "Xcode managed" and which the
+	     archive step refuses. -->
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
+	<key>signingCertificate</key>
+	<string>Apple Distribution</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>es.reichenbach.DosiCrew</key>
+		<string>__PROFILE_NAME__</string>
+	</dict>
 	<key>uploadSymbols</key>
 	<true/>
 	<key>manageAppVersionAndBuildNumber</key>

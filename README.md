@@ -125,6 +125,7 @@ Dann die Secrets unter *Settings → Secrets and variables → Actions* →
 | `ASC_KEY_P8` | Inhalt der `.p8`-Datei, mitsamt der BEGIN- und END-Zeilen |
 | `DIST_CERT_P12_BASE64` | das Distributions-Zertifikat als `.p12`, base64-kodiert (siehe unten) |
 | `DIST_CERT_PASSWORD` | das Passwort, mit dem die `.p12` exportiert wurde |
+| `DIST_PROFILE_BASE64` | das Provisioning-Profil als `.mobileprovision`, base64-kodiert |
 
 Für den Schlüssel gibt es zwei Wege, einer genügt: `ASC_KEY_P8` mit dem rohen
 Dateiinhalt — GitHub-Secrets nehmen mehrzeilige Werte — oder
@@ -243,6 +244,47 @@ löschen; im Repository haben sie nichts zu suchen.
 Der Workflow prüft beim Import, ob eine Identität vom Typ *Apple Distribution*
 herauskommt, und nennt bei einem Fehlschlag die beiden realistischen Ursachen —
 falsches Passwort oder eine `.p12` ohne `-legacy`.
+
+### Profil hinterlegen
+
+Zum Zertifikat gehört ein Provisioning-Profil, und zwar eines, das von Hand
+angelegt wurde. `xcodebuild -allowProvisioningUpdates` stellt zwar selbst
+eines aus, markiert es aber als *Xcode managed* — und die manuelle Signierung,
+auf die der Runner mangels lokalem Zertifikat angewiesen ist, lehnt genau die
+ab:
+
+```
+Provisioning profile "iOS Team Store Provisioning Profile: es.reichenbach.DosiCrew"
+is Xcode managed, but signing settings require a manually managed profile.
+```
+
+Ein selbst angelegtes Profil bricht diesen Kreis. Im Browser, ohne Mac:
+
+developer.apple.com → *Certificates, Identifiers & Profiles* → **Profiles** →
+**+** → unter *Distribution* die Option **App Store Connect** → *Continue* →
+App ID `es.reichenbach.DosiCrew` → *Continue* → das eben erzeugte
+**Apple Distribution**-Zertifikat auswählen → *Continue* → einen Namen vergeben,
+etwa `DosiCrew App Store` → *Generate* → **Download**.
+
+> **Reihenfolge zählt.** Ein Profil ist eine Momentaufnahme der App ID. Werden
+> Capabilities später angehakt — iCloud, Push, Time Sensitive, Critical Alerts —
+> muss das Profil neu erzeugt werden, sonst fehlen sie im Build und die App
+> stürzt beim Start ab. Der Workflow prüft das Profil vor dem Bauen und nennt
+> die fehlende Capability beim Namen.
+
+Dann in PowerShell, im Verzeichnis mit der heruntergeladenen Datei:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\DosiCrew_App_Store.mobileprovision")) `
+  | Set-Content -Encoding ascii profile.txt
+```
+
+Den Dateinamen ggf. anpassen. Der Inhalt von `profile.txt` kommt als
+`DIST_PROFILE_BASE64` ins Secret.
+
+Damit signiert der Runner durchgehend manuell: eigenes Zertifikat, eigenes
+Profil, kein Cloud Signing. Der App-Store-Connect-Schlüssel wird nur noch zum
+Hochladen gebraucht.
 
 ### CloudKit-Schema anlegen
 
