@@ -33,8 +33,22 @@ enum ReportPDF {
     }
 
     /// A filename somebody can find again in a mailbox six weeks later.
-    static func filename(for report: DoseReport.Report) -> String {
+    ///
+    /// Two things are pinned rather than left to the system, and a failing test
+    /// found both:
+    ///
+    /// The time zone, because the dates in the report are day boundaries in the
+    /// calendar that built it. A formatter left on its own uses the system zone,
+    /// and midnight in Berlin is the previous evening in UTC — the file would be
+    /// named for a day the report does not cover.
+    ///
+    /// The locale, because `yyyy` means "year in the current calendar". On a
+    /// phone set to the Japanese or Buddhist calendar that is not 2026, and a
+    /// filename of "0008-03-08" helps nobody find anything.
+    static func filename(for report: DoseReport.Report, timeZone: TimeZone = .current) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = timeZone
         formatter.dateFormat = "yyyy-MM-dd"
         let name = report.patientName
             .replacingOccurrences(of: "/", with: "-")

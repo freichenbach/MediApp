@@ -835,7 +835,10 @@ final class DoseReportTests: XCTestCase {
             to: date(2026, 3, 10),
             now: date(2026, 3, 11)
         )
-        let name = ReportPDF.filename(for: report)
+        // The same zone the dates were built in. Without this the test asks
+        // one calendar for a day and another for its name, which is the very
+        // thing the function now pins down.
+        let name = ReportPDF.filename(for: report, timeZone: calendar.timeZone)
         XCTAssertTrue(name.contains("Mia"), name)
         XCTAssertTrue(name.contains("2026-03-08"), name)
         XCTAssertTrue(name.hasSuffix(".pdf"), name)
