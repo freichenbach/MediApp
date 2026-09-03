@@ -386,17 +386,22 @@ CloudKit legt beim Teilen einen Datensatztyp `cloudkit.share` an, und in der
 Produktionsumgebung dürfen keine neuen Typen entstehen — Schemaänderungen gehen
 immer über Development und danach per Deploy.
 
-Der Haken: Dieser Typ entsteht in Development nicht durch
-`initializeCloudKitSchema`, sondern erst dadurch, dass tatsächlich einmal geteilt
-wird. Wer das Schema deployt, ohne vorher eine Einladung erzeugt zu haben,
-deployt ein Schema ohne Teilen — was auffällt, sobald jemand einlädt, und keinen
-Moment früher.
+**Zuerst nachsehen, das entscheidet alles Weitere:** CloudKit Console → Schema →
+Record Types, Umgebung oben auf **Development**. Steht `cloudkit.share` dort?
 
-**Mit Mac:** die App aus Xcode starten (Debug spricht mit Development), einmal
+**Ja** — dann fehlt nur das Übertragen: *Deploy Schema Changes* → Production.
+Kein neuer Build nötig. Das ist der häufige Fall, denn `initializeCloudKitSchema`
+legt den Typ mit an; er kam dann nach dem letzten Deploy dazu, etwa in einem
+weiteren Bootstrap-Lauf. Deployt wird eben ein Zustand, nicht ein Verlauf.
+
+**Nein** — dann muss der Typ in Development erst entstehen, und dafür muss
+tatsächlich einmal geteilt werden.
+
+*Mit Mac:* die App aus Xcode starten (Debug spricht mit Development), einmal
 *Teilen → Personen einladen* antippen, den Freigabedialog wieder schließen. Dann
 CloudKit Console → *Deploy Schema Changes* → Production.
 
-**Ohne Mac**, über TestFlight, weil ein Release-Build normalerweise nur mit
+*Ohne Mac*, über TestFlight, weil ein Release-Build normalerweise nur mit
 Production spricht:
 
 1. Den Release-Workflow starten und `icloud_environment` auf **Development**
@@ -409,8 +414,9 @@ Production spricht:
    **Production**. Dieser Build sieht den echten Plan wieder, und das Einladen
    funktioniert.
 
-Ob der Umweg nötig ist, sagt die Console: Schema → Record Types, Umgebung
-**Development**. Steht `cloudkit.share` schon da, genügt das Deployen.
+Und ganz gleich welcher Weg: Das Schema nach jeder Änderung erneut zu deployen
+kostet drei Klicks. Es nicht zu tun, kostet die Funktion, für die die App
+gebaut ist — und fällt erst auf, wenn jemand einlädt.
 
 ### Erinnerungen, die durchkommen
 
