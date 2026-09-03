@@ -420,6 +420,8 @@ final class PersistenceController {
             return false
         }
 
+        assignInsertedObjects(in: context)
+
         do {
             try context.save()
             return true
@@ -428,6 +430,41 @@ final class PersistenceController {
             context.rollback()
             return false
         }
+    }
+
+    /// Tells every newly inserted object which of the two stores it belongs to.
+    ///
+    /// With a single store Core Data guesses right by construction. With two —
+    /// this person's own database and everything shared with them — it cannot,
+    /// and saving an unassigned object raises an Objective-C exception that
+    /// Swift cannot catch: the app is killed rather than told.
+    ///
+    /// The rule is **not** "always private". A dose recorded for a child that
+    /// somebody shared *with* this person has to be written into the shared
+    /// store, or the owner never sees it — which would quietly break the one
+    /// promise this app makes. So each new object follows the record it hangs
+    /// off, and only a new root, a `Patient`, falls back to the private store.
+    private func assignInsertedObjects(in context: NSManagedObjectContext) {
+        guard let privateStore, container.persistentStoreCoordinator.persistentStores.count > 1 else { return }
+        for object in context.insertedObjects {
+            context.assign(object, to: Self.store(for: object) ?? privateStore)
+        }
+    }
+
+    /// The store an inserted object should join, or nil when it has no anchor
+    /// yet — a brand-new child, or one whose parent is being created in the
+    /// same breath and is therefore not in a store either.
+    static func store(for object: NSManagedObject) -> NSPersistentStore? {
+        let anchor: NSManagedObject?
+        switch object {
+        case let medication as Medication: anchor = medication.patient
+        case let rule as ScheduleRule: anchor = rule.medication
+        case let log as DoseLog: anchor = log.medication
+        case let event as CareEvent: anchor = event.patient
+        default: anchor = nil
+        }
+        guard let anchor, !anchor.objectID.isTemporaryID else { return nil }
+        return anchor.objectID.persistentStore
     }
 
     // MARK: - Sharing

@@ -385,3 +385,63 @@ final class StoreDescriptionTests: XCTestCase {
         }
     }
 }
+
+/// Which store a newly inserted object joins.
+///
+/// Irrelevant while only one store ever opened — Core Data has nothing to
+/// choose between. From the moment both the private and the shared store load,
+/// an unassigned insert is fatal: Core Data answers with an Objective-C
+/// exception that Swift cannot catch.
+final class StoreAssignmentTests: XCTestCase {
+
+    private func controller() -> PersistenceController { PersistenceController(inMemory: true) }
+
+    func testAMedicationFollowsItsChild() throws {
+        let controller = controller()
+        let context = controller.viewContext
+        let patient = Patient.makeDefault(in: context)
+        XCTAssertTrue(controller.save(context))
+
+        let medication = Medication.make(in: context, patient: patient)
+        XCTAssertNotNil(PersistenceController.store(for: medication),
+                        "A medication has to land in the same store as its child")
+        XCTAssertEqual(PersistenceController.store(for: medication), patient.objectID.persistentStore)
+    }
+
+    /// The case that would break sharing silently: a dose recorded for a child
+    /// somebody shared *with* this person belongs in the shared store, not in
+    /// the private one, or the owner never sees it.
+    func testADoseFollowsItsMedication() throws {
+        let controller = controller()
+        let context = controller.viewContext
+        let patient = Patient.makeDefault(in: context)
+        let medication = Medication.make(in: context, patient: patient)
+        XCTAssertTrue(controller.save(context))
+
+        let log = DoseLog.make(
+            in: context,
+            medication: medication,
+            scheduledAt: Date(),
+            status: .given,
+            personName: "Papa"
+        )
+        XCTAssertEqual(PersistenceController.store(for: log), medication.objectID.persistentStore)
+    }
+
+    /// A new child has nothing to follow, so the caller falls back to the
+    /// private store — the only database this person may create in.
+    func testANewChildHasNoAnchor() {
+        let context = controller().viewContext
+        XCTAssertNil(PersistenceController.store(for: Patient.makeDefault(in: context)))
+    }
+
+    /// Child and medication created in one breath: the parent is not in a store
+    /// yet, so it cannot answer for the child either.
+    func testAnUnsavedParentIsNotAnAnchorYet() {
+        let context = controller().viewContext
+        let patient = Patient.makeDefault(in: context)
+        let medication = Medication.make(in: context, patient: patient)
+        XCTAssertTrue(patient.objectID.isTemporaryID)
+        XCTAssertNil(PersistenceController.store(for: medication))
+    }
+}
