@@ -119,29 +119,37 @@ jobs:
           sed "s/__TEAM_ID__/$APPLE_TEAM_ID/" Tools/ExportOptions.plist > build/ExportOptions.plist
           plutil -lint build/ExportOptions.plist
 
-      - name: Archive (signed for distribution)
+      - name: Archive (ad-hoc signed, so the entitlements are embedded)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -o pipefail
-          # Signed here, not only at export — and specifically for
-          # *distribution*.
+          # Signed here, but with nobody's certificate.
           #
-          # This step used to pass CODE_SIGNING_ALLOWED=NO, to dodge the fact
-          # that automatic signing reaches for an *iOS App Development* profile,
-          # and those need a registered device that a fresh team does not have.
-          # It dodged something else too: without signing, no entitlements are
-          # embedded, and `exportArchive` has none to carry over. It then signs
-          # with the bare minimum the profile brings — application-identifier,
-          # team-identifier, beta-reports-active, get-task-allow — and the app
-          # ships with no iCloud container, no CloudKit and no time-sensitive
-          # notifications. That is what made Build 6 trap on launch.
+          # Two things have to be true of the archive at once, and the obvious
+          # settings each break the other:
           #
-          # Naming Apple Distribution sends automatic signing to the App Store
-          # profile instead of the development one, so the device problem does
-          # not arise and the entitlements are embedded from the start.
+          #   * it must carry the entitlements, or `exportArchive` has nothing
+          #     to carry over and signs with the bare minimum a profile brings
+          #     — application-identifier, team-identifier, beta-reports-active,
+          #     get-task-allow. That is the app Build 6 was, and it trapped on
+          #     launch inside -[CKContainerImplementation _checkRequiredEntitlements].
+          #   * it must not need a provisioning profile, because automatic
+          #     signing reaches for an *iOS App Development* profile and those
+          #     want a registered device, which a fresh team has none of. That
+          #     is what stopped run 3.
+          #
+          # Naming "Apple Distribution" was my attempt at the second and it does
+          # not work: automatic signing refuses a manually named identity
+          # outright ("conflicting provisioning settings", run 9). The setting
+          # is only accepted under manual signing, and manual signing wants the
+          # profile again.
+          #
+          # Ad-hoc signing satisfies both. `CODE_SIGN_IDENTITY=-` needs no
+          # certificate and no profile, and it still embeds the entitlements
+          # file — which is all the archive is asked to preserve. The real
+          # certificate and the App Store profile arrive at the export step,
+          # where they belong and where no device is required.
           #
           # TestFlight rejects a build number it has already seen, so it comes
           # from the run counter rather than the checked-in value.
@@ -151,14 +159,13 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath build/DosiCrew.xcarchive \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="-" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_REQUIRED=NO
 
       - name: Check the archive carries its entitlements
         run: |
@@ -168,10 +175,15 @@ jobs:
           # only after the export means the profile dropped them.
           APP=$(find build/DosiCrew.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
           [ -n "$APP" ] || { echo "::error::No .app inside the archive."; exit 1; }
+          codesign -dv "$APP" 2>&1 || true
           codesign -d --entitlements :- "$APP" > archive-entitlements.plist 2>/dev/null || true
           cat archive-entitlements.plist
+          if [ ! -s archive-entitlements.plist ]; then
+            echo "::error::The archived app is not signed at all, so it carries no entitlements. CODE_SIGN_IDENTITY=- should have ad-hoc signed it; check the archive step's build settings."
+            exit 1
+          fi
           if ! grep -q "iCloud.es.reichenbach.DosiCrew" archive-entitlements.plist; then
-            echo "::error::The archived app carries no iCloud container entitlement. Signing during the archive step is what embeds them; check CODE_SIGN_IDENTITY and CODE_SIGN_STYLE above."
+            echo "::error::The archived app is signed but carries no iCloud container entitlement, so CODE_SIGN_ENTITLEMENTS did not reach it. Check that the Release configuration still points at Config/DosiCrew.Release.entitlements."
             exit 1
           fi
           echo "The archive carries its entitlements."
@@ -236,7 +248,15 @@ jobs:
           grep -q "com.apple.developer.icloud-container-environment" entitlements.plist || missing="$missing container-environment"
           grep -q "com.apple.developer.usernotifications.time-sensitive" entitlements.plist || missing="$missing time-sensitive"
           if [ -n "$missing" ]; then
-            echo "::error::The signed app is missing:$missing. Check Tools/ExportOptions.plist and the capabilities on the App ID. Uploading now would produce a build that crashes on launch."
+            # The archive was checked a few steps ago, so if something is gone
+            # now the profile dropped it — and the profile says why. Printing it
+            # turns "missing" into "the App ID has no such capability".
+            PROFILE="$APP/embedded.mobileprovision"
+            if [ -f "$PROFILE" ]; then
+              echo "--- entitlements the embedded profile allows ---"
+              security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract Entitlements xml1 -o - - || true
+            fi
+            echo "::error::The signed app is missing:$missing. The archive had them, so the App Store profile dropped them — the App ID needs the matching capabilities (iCloud with CloudKit, Push, Time Sensitive Notifications) in the Developer portal. Uploading now would produce a build that crashes on launch."
             exit 1
           fi
           echo "Entitlements look complete."
