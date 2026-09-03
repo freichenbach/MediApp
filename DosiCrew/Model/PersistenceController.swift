@@ -259,6 +259,7 @@ final class PersistenceController {
                 Container: \(Self.cloudKitContainerIdentifier)
 
                 \(error)
+                \(Self.adviceFor(error))
                 """))
             Self.logger.error("Initializing the CloudKit schema failed: \(error.localizedDescription)")
         }
@@ -314,6 +315,34 @@ final class PersistenceController {
                stores from loading.
             """))
         Self.logger.error("CloudKit stores unavailable during schema bootstrap: \(detail)")
+    }
+
+    /// Turns the one failure that is not a defect into an instruction.
+    ///
+    /// `initializeCloudKitSchema` gives itself 30 seconds for the whole model
+    /// and gives up if the round trips take longer — which on an ordinary
+    /// connection they often do. Nothing is broken and nothing is lost: the
+    /// work is incremental, so each further attempt only has to create what is
+    /// still missing, and two or three runs usually finish it. Without this
+    /// line the message reads like a wall.
+    ///
+    /// Matched on the text because Core Data reports it as a plain 134060 with
+    /// the reason buried in a nested error, with no distinct code to test.
+    private static func adviceFor(_ error: Error) -> String {
+        guard String(describing: error).contains("timed out") else { return "" }
+        return """
+
+            This is a timeout, not a defect, and it is common. The schema is
+            built incrementally — run it again, each attempt creates what is
+            still missing. Two or three runs usually finish it.
+
+            Watch the progress in the CloudKit Console under Schema → Record
+            Types: CD_Patient, CD_Medication, CD_ScheduleRule, CD_DoseLog and
+            CD_CareEvent all have to be there before deploying to production.
+
+            A fast, stable network shortens it. On a phone, WiFi rather than
+            cellular.
+            """
     }
 
     /// One shape for both outcomes, so neither scrolls past unnoticed in a
