@@ -396,6 +396,11 @@ jobs:
           grep -q "iCloud.es.reichenbach.DosiCrew" entitlements.plist || missing="$missing container-identifier"
           grep -q "com.apple.developer.icloud-container-environment" entitlements.plist || missing="$missing container-environment"
           grep -q "com.apple.developer.usernotifications.time-sensitive" entitlements.plist || missing="$missing time-sensitive"
+          # Apple granted this one for es.reichenbach.DosiCrew on 3 September.
+          # It is checked like the rest because App Store Connect rejects an
+          # upload whose entitlements the profile does not cover, and it does so
+          # after the upload, not at export.
+          grep -q "com.apple.developer.usernotifications.critical-alerts" entitlements.plist || missing="$missing critical-alerts"
           if [ -n "$missing" ]; then
             # The archive was checked a few steps ago, so if something is gone
             # now the profile dropped it — and the profile says why. Printing it
@@ -405,7 +410,7 @@ jobs:
               echo "--- entitlements the embedded profile allows ---"
               security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract Entitlements xml1 -o - - || true
             fi
-            echo "::error::The signed app is missing:$missing. The archive had them, so the App Store profile dropped them — the App ID needs the matching capabilities (iCloud with CloudKit, Push, Time Sensitive Notifications) in the Developer portal. Uploading now would produce a build that crashes on launch."
+            echo "::error::The signed app is missing:$missing. The archive had them, so the App Store profile dropped them — the App ID needs the matching capabilities (iCloud with CloudKit, Push, Time Sensitive Notifications, Critical Alerts) ticked in the Developer portal. Uploading now would produce a build that crashes on launch."
             exit 1
           fi
           echo "Entitlements look complete."

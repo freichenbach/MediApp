@@ -3,9 +3,20 @@
 Formular:
 <https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement>
 
-**Gestellt am 2026-09-03 — Request ID `5BULB2V9N5`.** Was unten steht, ist
-damit Beleg statt Anleitung: es dokumentiert, was eingereicht wurde, und dient
-als Vorlage, falls Apple nachfragt oder der Antrag wiederholt werden muss.
+**Gestellt am 2026-09-03 — Request ID `5BULB2V9N5`. Am selben Tag genehmigt.**
+Apple hat das Entitlement der App ID `es.reichenbach.DosiCrew` zugewiesen; es
+steht seither in `Config/DosiCrew.entitlements` und
+`Config/DosiCrew.Release.entitlements`.
+
+Was unten steht, ist damit Beleg statt Anleitung: es dokumentiert, was
+eingereicht wurde, und dient als Vorlage, falls Apple nachfragt oder der Antrag
+für eine weitere App wiederholt werden muss.
+
+Im Code war der Weg schon vorbereitet und hat sich mit dem Entitlement von
+selbst eingeschaltet: `requestAuthorization` fragt `.criticalAlert` seit jeher
+mit an, und `urgency(for:)` liest `criticalAlertSetting` und stuft die
+Erinnerung hoch, sobald das System die Berechtigung erteilt hat. Es war also
+kein Codeumbau nötig, nur zwei Zeilen in den Entitlements.
 
 Auszufüllen ist der Abschnitt **Details**. Er hat vier Eingaben; unten steht zu
 jeder der fertige Text zum Kopieren. Das Formular ist englisch, also ist der
