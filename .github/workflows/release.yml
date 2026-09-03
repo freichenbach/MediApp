@@ -119,26 +119,26 @@ jobs:
           sed "s/__TEAM_ID__/$APPLE_TEAM_ID/" Tools/ExportOptions.plist > build/ExportOptions.plist
           plutil -lint build/ExportOptions.plist
 
-      - name: Archive (unsigned)
+      - name: Archive (unsigned, to get something to export)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -o pipefail
-          # Unsigned, because every way of signing *here* is closed:
+          # Unsigned, because every way of signing at this point is closed:
           #
           #   * automatic signing reaches for an iOS App Development profile,
           #     and those want a registered device that a fresh team has none
           #     of (run 3);
-          #   * naming "Apple Distribution" alongside automatic signing is
-          #     rejected outright as conflicting settings (run 9);
+          #   * automatic signing plus CODE_SIGN_IDENTITY="Apple Distribution"
+          #     is rejected as conflicting settings (run 9);
           #   * ad-hoc signing is refused by the SDK — "Ad Hoc code signing is
           #     not allowed with SDK 'iOS 26.5'" (run 10).
           #
-          # So the archive stays unsigned and the entitlements travel beside
-          # the binary instead of inside it; the next step puts them there.
-          # The real certificate and the App Store profile arrive at the export
-          # step, where cloud signing needs no device and has worked since
-          # run 4.
+          # The way out is the one thing that has worked since run 4: cloud
+          # signing at export time, which needs no device. It only needs an
+          # archive to work on — so this is that archive, and its own export
+          # is thrown away. What it leaves behind is the point: a distribution
+          # certificate in the keychain and an App Store profile on disk.
           #
           # TestFlight rejects a build number it has already seen, so it comes
           # from the run counter rather than the checked-in value.
@@ -147,48 +147,125 @@ jobs:
             -scheme "$SCHEME" \
             -configuration Release \
             -destination 'generic/platform=iOS' \
+            -archivePath build/pass1.xcarchive \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Have cloud signing create the certificate and the profile
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          # This export is discarded. Runs 6 to 11 proved it cannot produce a
+          # usable app — an unsigned archive carries no entitlements, and
+          # exportArchive does not read them from anywhere else, so it signs
+          # with the four lines the profile brings on its own. That is the app
+          # Build 6 was, and it trapped on launch.
+          #
+          # What it does do is ask Apple for the certificate and the App Store
+          # profile, and put both where the next archive can use them.
+          set +e
+          xcodebuild -exportArchive \
+            -archivePath build/pass1.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/pass1 \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" 2>&1 | tee export1.log
+          status=${PIPESTATUS[0]}
+          set -e
+
+          # Worth naming outright: the message says nothing about roles, and
+          # the obvious reading — "the profile is missing" — sends you looking
+          # in the wrong place.
+          if grep -q "Cloud signing permission error" export1.log; then
+            echo "::error::The App Store Connect key may not create distribution certificates. Cloud signing needs a key with the *Admin* role; App Manager is not enough. Create a new Team Key with Admin access and update ASC_KEY_ID, ASC_ISSUER_ID and ASC_KEY_P8."
+            exit 1
+          fi
+          [ "$status" -eq 0 ] || exit "$status"
+
+          # The profile is taken out of the exported app rather than searched
+          # for on disk: this is by definition the one Apple just picked for
+          # this bundle identifier, so there is nothing to guess and no second
+          # profile to confuse it with.
+          IPA=$(ls build/pass1/*.ipa | head -1)
+          rm -rf build/pass1-unpacked && mkdir -p build/pass1-unpacked
+          unzip -q "$IPA" -d build/pass1-unpacked
+          APP=$(find build/pass1-unpacked/Payload -maxdepth 1 -name '*.app' -print -quit)
+          PROFILE="$APP/embedded.mobileprovision"
+          [ -f "$PROFILE" ] || { echo "::error::The exported app has no embedded profile."; exit 1; }
+
+          security cms -D -i "$PROFILE" > build/profile.plist
+          UUID=$(plutil -extract UUID raw -o - build/profile.plist)
+          NAME=$(plutil -extract Name raw -o - build/profile.plist)
+          echo "Profile: $NAME ($UUID)"
+          echo "It allows:"
+          plutil -extract Entitlements xml1 -o - build/profile.plist
+
+          # Xcode looks here when a build names a profile.
+          DEST="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$DEST"
+          cp "$PROFILE" "$DEST/$UUID.mobileprovision"
+
+          # The certificate cloud signing just created. There should be exactly
+          # one; if a run ever finds several, signing with the wrong one fails
+          # loudly at export rather than silently here.
+          security find-identity -v -p codesigning
+          IDENTITY=$(security find-identity -v -p codesigning | grep "Apple Distribution" | head -1 | sed -E 's/.*"(.*)"/\1/')
+          [ -n "$IDENTITY" ] || { echo "::error::Cloud signing left no Apple Distribution certificate in the keychain."; exit 1; }
+          echo "Identity: $IDENTITY"
+
+          echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
+          echo "SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Archive again, signed with that profile
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -o pipefail
+          # The archive that actually ships. Manual signing is what makes
+          # naming a distribution identity legal — under automatic signing the
+          # same setting is a conflict (run 9) — and the profile now exists, so
+          # the objection that closed this door in run 3 no longer applies.
+          #
+          # Xcode writes the full entitlements into the binary here: the iCloud
+          # container, CloudKit, time-sensitive notifications, and the
+          # application-identifier the profile prescribes. That is the whole
+          # point of the second pass.
+          xcodebuild archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
             -archivePath build/DosiCrew.xcarchive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID"
 
-      - name: Give the archive its entitlements to carry
+      - name: Check the archive carries its entitlements
         run: |
-          # This is the file `exportArchive` reads to find out what the app is
-          # entitled to before it re-signs: archived-expanded-entitlements.xcent
-          # inside the archived .app. Xcode writes it while archiving — but only
-          # when it signs, and this archive is unsigned. Without it the export
-          # signs with the bare minimum the profile brings on its own
-          # (application-identifier, team-identifier, beta-reports-active,
-          # get-task-allow), which is exactly the app Build 6 was: no iCloud
-          # container, and a trap on launch inside
-          # -[CKContainerImplementation _checkRequiredEntitlements].
-          #
-          # So it gets written by hand, from the same file the target builds
-          # against. The environment key is deliberately not in it — the export
-          # step adds that one from iCloudContainerEnvironment.
+          # Checked here as well as after the export, because the two fail for
+          # different reasons and the difference is the diagnosis: missing here
+          # means the second archive did not embed them; missing only after the
+          # export means the export dropped them again.
           APP=$(find build/DosiCrew.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
           [ -n "$APP" ] || { echo "::error::No .app inside the archive."; exit 1; }
-
-          XCENT="$APP/archived-expanded-entitlements.xcent"
-          if [ -f "$XCENT" ]; then
-            echo "Xcode wrote it after all:"
-          else
-            cp Config/DosiCrew.Release.entitlements "$XCENT"
-            echo "Written from Config/DosiCrew.Release.entitlements:"
-          fi
-          plutil -lint "$XCENT"
-          plutil -p "$XCENT"
-
-          # A typo in the path above would leave a file nobody reads, and the
-          # export would fail three steps later for a reason that looks
-          # unrelated. Cheaper to insist here.
-          if ! grep -q "iCloud.es.reichenbach.DosiCrew" "$XCENT"; then
-            echo "::error::The entitlements file carries no iCloud container. Check Config/DosiCrew.Release.entitlements."
+          codesign -d --entitlements :- "$APP" > archive-entitlements.plist 2>/dev/null || true
+          cat archive-entitlements.plist
+          if [ ! -s archive-entitlements.plist ]; then
+            echo "::error::The archived app is not signed, so it carries no entitlements. Check CODE_SIGN_IDENTITY and PROVISIONING_PROFILE_SPECIFIER in the step above."
             exit 1
           fi
+          if ! grep -q "iCloud.es.reichenbach.DosiCrew" archive-entitlements.plist; then
+            echo "::error::The archived app is signed but carries no iCloud container, so CODE_SIGN_ENTITLEMENTS did not reach it. Check that the Release configuration still points at Config/DosiCrew.Release.entitlements."
+            exit 1
+          fi
+          echo "The archive carries its entitlements."
 
       - name: Export and sign the IPA
         env:
@@ -196,9 +273,9 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -o pipefail
-          # This is where signing happens: -allowProvisioningUpdates creates
-          # the App Store distribution profile and certificate, neither of
-          # which needs a registered device.
+          # Re-signs the already-signed archive for the store and adds
+          # iCloudContainerEnvironment from the export options. The profile and
+          # the certificate exist by now, so this is the cheap pass.
           set +e
           xcodebuild -exportArchive \
             -archivePath build/DosiCrew.xcarchive \
