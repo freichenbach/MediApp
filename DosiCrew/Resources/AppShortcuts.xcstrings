@@ -1,0 +1,144 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "${applicationName} given": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName} gegeben"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName} given"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "${applicationName} administrada"
+          }
+        }
+      }
+    },
+    "Ask ${applicationName} what is due": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frag ${applicationName}, was ansteht"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask ${applicationName} what is due"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pregunta a ${applicationName} qué toca"
+          }
+        }
+      }
+    },
+    "Record a dose in ${applicationName}": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gabe in ${applicationName} eintragen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record a dose in ${applicationName}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrar una dosis en ${applicationName}"
+          }
+        }
+      }
+    },
+    "Tick off a dose in ${applicationName}": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gabe in ${applicationName} abhaken"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tick off a dose in ${applicationName}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar una dosis en ${applicationName}"
+          }
+        }
+      }
+    },
+    "What is next in ${applicationName}?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was ist als Nächstes in ${applicationName}?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What is next in ${applicationName}?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Qué toca ahora en ${applicationName}?"
+          }
+        }
+      }
+    },
+    "When is the next dose in ${applicationName}?": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wann ist die nächste Gabe in ${applicationName}?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When is the next dose in ${applicationName}?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cuándo es la próxima dosis en ${applicationName}?"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

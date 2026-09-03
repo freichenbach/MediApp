@@ -18,6 +18,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check that the Siri phrases are translated
+        # Before the build, because it needs no simulator and takes no time,
+        # and because a missing translation is invisible otherwise: the app
+        # compiles, the shortcut shows up, and Siri simply does not understand
+        # the question in that language.
+        run: python3 Tools/check-shortcut-phrases.py
+
       - name: Select the newest installed Xcode
         run: |
           # The project uses Xcode 16 folder synchronisation (objectVersion 77),

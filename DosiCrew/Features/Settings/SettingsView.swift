@@ -117,30 +117,52 @@ struct SettingsView: View {
     /// Says what a reminder can actually do to a quiet iPhone.
     ///
     /// Worth a line of its own because the honest answer is not the one people
-    /// assume: a reminder gets past Focus and Do Not Disturb, but the mute
-    /// switch silences it until Apple grants the critical-alert entitlement.
-    /// Better to say so here than to let somebody rely on a ring that never
-    /// comes.
+    /// assume, and it differs per iPhone. Somebody who expects a ring at three
+    /// in the morning and gets a silent banner does not find out until the dose
+    /// has been missed.
+    ///
+    /// The order runs from the worst state to the best, because the states can
+    /// overlap and the most restrictive one is the one worth reading.
     @ViewBuilder
     private var loudnessStatus: some View {
-        if criticalAlertSetting == .enabled {
+        if timeSensitiveSetting == .disabled {
+            settingsHint(
+                "Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back.",
+                icon: "bell.slash"
+            )
+        } else if criticalAlertSetting == .enabled {
             Label("Rings even when the iPhone is silenced.", systemImage: "bell.badge.fill")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+        } else if criticalAlertSetting == .disabled {
+            // The state this app is most likely to be in, and the one that used
+            // to be invisible: iOS asks for notification permission exactly
+            // once, so an iPhone that said yes before this app could ring
+            // through the mute switch never gets asked about it. Nothing
+            // prompts again — the switch has to be found by hand, and nobody
+            // goes looking for a switch they do not know exists.
+            settingsHint(
+                "Reminders can ring through the mute switch, but that permission is off. iOS only asks once, so it has to be switched on by hand under Notifications › DosiCrew.",
+                icon: "bell.badge"
+            )
         } else if timeSensitiveSetting == .enabled {
             Label("Gets past Focus and Do Not Disturb. A silenced iPhone still stays silent.", systemImage: "bell.and.waves.left.and.right")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-        } else if timeSensitiveSetting == .disabled {
-            VStack(alignment: .leading, spacing: 4) {
-                Label("Time sensitive notifications are switched off for DosiCrew, so Focus will hold reminders back.", systemImage: "bell.slash")
-                    .foregroundStyle(.orange)
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    Link("Open iOS Settings", destination: url)
-                }
-            }
-            .font(.footnote)
         }
+    }
+
+    /// A warning that also offers the way out of it. Naming a switch without a
+    /// route to it leaves the reader worse off than saying nothing.
+    private func settingsHint(_ text: LocalizedStringKey, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(text, systemImage: icon)
+                .foregroundStyle(.orange)
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                Link("Open iOS Settings", destination: url)
+            }
+        }
+        .font(.footnote)
     }
 
     private func warning(_ text: LocalizedStringKey) -> some View {

@@ -3290,6 +3290,29 @@
         }
       }
     },
+    "Reminders can ring through the mute switch, but that permission is off. iOS only asks once, so it has to be switched on by hand under Notifications › DosiCrew.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnerungen dürfen durch den Stummschalter klingeln, aber die Berechtigung ist aus. iOS fragt nur einmal danach, sie muss also von Hand eingeschaltet werden unter „Mitteilungen › DosiCrew“."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminders can ring through the mute switch, but that permission is off. iOS only asks once, so it has to be switched on by hand under Notifications › DosiCrew."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los recordatorios pueden sonar con el iPhone en silencio, pero ese permiso está desactivado. iOS solo lo pregunta una vez, así que hay que activarlo a mano en «Notificaciones › DosiCrew»."
+          }
+        }
+      }
+    },
     "Remove time": {
       "extractionState": "manual",
       "localizations": {
