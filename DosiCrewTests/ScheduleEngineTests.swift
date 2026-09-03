@@ -276,3 +276,58 @@ final class ChildColorTests: XCTestCase {
         }
     }
 }
+
+/// The dose field goes through text, so the parsing is worth pinning down: a
+/// dose read wrong by a factor of ten is the kind of failure this app exists to
+/// prevent, not to cause.
+final class DecimalTextTests: XCTestCase {
+
+    func testEmptyFieldMeansNoAmount() {
+        XCTAssertEqual(DecimalText.value(of: ""), 0)
+        XCTAssertEqual(DecimalText.value(of: "   "), 0)
+    }
+
+    func testNoAmountShowsAnEmptyFieldRatherThanAZero() {
+        XCTAssertEqual(DecimalText.text(for: 0), "")
+    }
+
+    func testBothDecimalSeparatorsMeanTheSameThing() {
+        XCTAssertEqual(DecimalText.value(of: "2.5"), 2.5, accuracy: 0.0001)
+        XCTAssertEqual(DecimalText.value(of: "2,5"), 2.5, accuracy: 0.0001)
+    }
+
+    /// The reason this does not use NumberFormatter: in an English locale it
+    /// reads "5,5" as a grouping separator and answers 55.
+    func testACommaIsNeverAThousandsSeparator() {
+        XCTAssertEqual(DecimalText.value(of: "5,5"), 5.5, accuracy: 0.0001)
+        XCTAssertNotEqual(DecimalText.value(of: "5,5"), 55)
+    }
+
+    func testNonsenseIsNotAnAmount() {
+        XCTAssertEqual(DecimalText.value(of: "1,2,3"), 0)
+        XCTAssertEqual(DecimalText.value(of: "abc"), 0)
+        XCTAssertEqual(DecimalText.value(of: "-5"), 0, "A negative dose is not a dose")
+    }
+
+    func testWhatIsShownCanBeTypedBackIn() {
+        for amount in [0.5, 1, 2.5, 7, 12.75, 1000] as [Double] {
+            let shown = DecimalText.text(for: amount)
+            XCTAssertEqual(DecimalText.value(of: shown), amount, accuracy: 0.0001,
+                           "\(amount) rendered as \"\(shown)\" and did not survive the round trip")
+        }
+    }
+}
+
+/// A new medication starts with a schedule that has no times, so the first time
+/// added is the first time there is — nothing has to be deleted first.
+final class NewScheduleTests: XCTestCase {
+
+    func testAFreshRuleHasNoTimes() {
+        let controller = PersistenceController(inMemory: true)
+        let context = controller.viewContext
+        let patient = Patient.makeDefault(in: context)
+        let medication = Medication.make(in: context, patient: patient)
+        let rule = ScheduleRule.make(in: context, medication: medication)
+        XCTAssertTrue(rule.minutes.isEmpty, "A guessed time has to be deleted before the real one helps")
+    }
+}

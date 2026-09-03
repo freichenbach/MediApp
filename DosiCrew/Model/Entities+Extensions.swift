@@ -181,7 +181,10 @@ extension ScheduleRule {
         rule.recurrenceEnum = .daily
         rule.intervalDays = 1
         rule.weekdayMask = Int16(ScheduleEngine.allWeekdaysMask)
-        rule.minutes = [8 * 60]
+        // No times. A guessed 08:00 is not a head start — it has to be deleted
+        // after the real time is added, and deleting the one entry that is
+        // already there is more work than adding the one that is wanted.
+        rule.minutes = []
         rule.medication = medication
         return rule
     }

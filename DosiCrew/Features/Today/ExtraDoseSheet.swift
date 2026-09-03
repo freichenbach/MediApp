@@ -44,6 +44,7 @@ struct ExtraDoseSheet: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .dismissibleKeyboard()
             .navigationTitle("Extra dose")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

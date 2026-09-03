@@ -58,6 +58,7 @@ struct PatientEditView: View {
                 }
             }
         }
+        .dismissibleKeyboard()
         .navigationTitle(name.isEmpty ? Text("Edit child") : Text(name))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: load)

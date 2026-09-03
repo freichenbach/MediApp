@@ -100,6 +100,7 @@ struct WhoAreYouView: View {
                     Text("Shown next to every dose you tick off, so everyone can see who gave what.")
                 }
             }
+            .dismissibleKeyboard()
             .navigationTitle("Welcome")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

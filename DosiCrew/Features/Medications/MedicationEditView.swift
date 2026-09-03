@@ -9,7 +9,7 @@ struct MedicationEditView: View {
 
     @State private var name: String = ""
     @State private var form: MedicationForm = .tablet
-    @State private var doseAmount: Double = 0
+    @State private var doseText: String = ""
     @State private var doseUnit: String = ""
     @State private var strengthText: String = ""
     @State private var instructions: String = ""
@@ -53,7 +53,7 @@ struct MedicationEditView: View {
                     HStack {
                         Text("Amount per dose")
                         Spacer()
-                        TextField("0", value: $doseAmount, format: .number)
+                        TextField("0", text: $doseText)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(maxWidth: 90)
@@ -124,6 +124,7 @@ struct MedicationEditView: View {
                         .disabled(trimmedName.isEmpty)
                 }
             }
+            .dismissibleKeyboard()
             .onAppear(perform: load)
         }
         .interactiveDismissDisabled()
@@ -169,7 +170,7 @@ struct MedicationEditView: View {
         originalName = medication.displayName
         name = medication.name ?? ""
         form = medication.formEnum
-        doseAmount = medication.doseAmount
+        doseText = DecimalText.text(for: medication.doseAmount)
         doseUnit = medication.doseUnit ?? medication.formEnum.defaultUnit
         strengthText = medication.strengthText ?? ""
         instructions = medication.instructions ?? ""
@@ -192,7 +193,7 @@ struct MedicationEditView: View {
     private func save() {
         medication.name = trimmedName
         medication.formEnum = form
-        medication.doseAmount = max(0, doseAmount)
+        medication.doseAmount = DecimalText.value(of: doseText)
         medication.doseUnit = doseUnit.trimmingCharacters(in: .whitespaces)
         medication.strengthText = strengthText.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         medication.instructions = instructions.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty

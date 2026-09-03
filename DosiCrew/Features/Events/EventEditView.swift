@@ -15,7 +15,7 @@ struct EventEditView: View {
     @State private var title: String = ""
     @State private var note: String = ""
     @State private var hasMeasurement = false
-    @State private var measurementValue: Double = 0
+    @State private var measurementText: String = ""
     @State private var measurementUnit: String = "°C"
     @State private var loaded = false
 
@@ -55,7 +55,7 @@ struct EventEditView: View {
                 Toggle("Record a value", isOn: $hasMeasurement.animation())
                 if hasMeasurement {
                     HStack {
-                        TextField("0", value: $measurementValue, format: .number)
+                        TextField("0", text: $measurementText)
                             .keyboardType(.decimalPad)
                         TextField("Unit", text: $measurementUnit)
                             .frame(maxWidth: 80)
@@ -79,6 +79,7 @@ struct EventEditView: View {
                 }
             }
         }
+        .dismissibleKeyboard()
         .navigationTitle(isNew ? Text("New event") : Text("Event"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -109,7 +110,7 @@ struct EventEditView: View {
             title = event.title ?? ""
             note = event.note ?? ""
             hasMeasurement = event.hasMeasurement
-            measurementValue = event.measurementValue
+            measurementText = DecimalText.text(for: event.measurementValue)
             measurementUnit = event.measurementUnit ?? category.suggestedUnit ?? ""
         } else {
             category = .fever
@@ -145,7 +146,7 @@ struct EventEditView: View {
         target.title = title.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         target.note = note.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         target.hasMeasurement = hasMeasurement
-        target.measurementValue = hasMeasurement ? measurementValue : 0
+        target.measurementValue = hasMeasurement ? DecimalText.value(of: measurementText) : 0
         target.measurementUnit = hasMeasurement ? measurementUnit.trimmingCharacters(in: .whitespaces).nilIfEmpty : nil
         if target.personName == nil { target.personName = AppSettings.personName }
 

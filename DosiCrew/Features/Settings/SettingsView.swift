@@ -81,6 +81,7 @@ struct SettingsView: View {
                     Text("Please note")
                 }
             }
+            .dismissibleKeyboard()
             .navigationTitle("Settings")
             .onAppear(perform: load)
             .onChange(of: remindersEnabled) { _, _ in rescheduleReminders() }
