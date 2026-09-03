@@ -119,37 +119,26 @@ jobs:
           sed "s/__TEAM_ID__/$APPLE_TEAM_ID/" Tools/ExportOptions.plist > build/ExportOptions.plist
           plutil -lint build/ExportOptions.plist
 
-      - name: Archive (ad-hoc signed, so the entitlements are embedded)
+      - name: Archive (unsigned)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -o pipefail
-          # Signed here, but with nobody's certificate.
+          # Unsigned, because every way of signing *here* is closed:
           #
-          # Two things have to be true of the archive at once, and the obvious
-          # settings each break the other:
+          #   * automatic signing reaches for an iOS App Development profile,
+          #     and those want a registered device that a fresh team has none
+          #     of (run 3);
+          #   * naming "Apple Distribution" alongside automatic signing is
+          #     rejected outright as conflicting settings (run 9);
+          #   * ad-hoc signing is refused by the SDK — "Ad Hoc code signing is
+          #     not allowed with SDK 'iOS 26.5'" (run 10).
           #
-          #   * it must carry the entitlements, or `exportArchive` has nothing
-          #     to carry over and signs with the bare minimum a profile brings
-          #     — application-identifier, team-identifier, beta-reports-active,
-          #     get-task-allow. That is the app Build 6 was, and it trapped on
-          #     launch inside -[CKContainerImplementation _checkRequiredEntitlements].
-          #   * it must not need a provisioning profile, because automatic
-          #     signing reaches for an *iOS App Development* profile and those
-          #     want a registered device, which a fresh team has none of. That
-          #     is what stopped run 3.
-          #
-          # Naming "Apple Distribution" was my attempt at the second and it does
-          # not work: automatic signing refuses a manually named identity
-          # outright ("conflicting provisioning settings", run 9). The setting
-          # is only accepted under manual signing, and manual signing wants the
-          # profile again.
-          #
-          # Ad-hoc signing satisfies both. `CODE_SIGN_IDENTITY=-` needs no
-          # certificate and no profile, and it still embeds the entitlements
-          # file — which is all the archive is asked to preserve. The real
-          # certificate and the App Store profile arrive at the export step,
-          # where they belong and where no device is required.
+          # So the archive stays unsigned and the entitlements travel beside
+          # the binary instead of inside it; the next step puts them there.
+          # The real certificate and the App Store profile arrive at the export
+          # step, where cloud signing needs no device and has worked since
+          # run 4.
           #
           # TestFlight rejects a build number it has already seen, so it comes
           # from the run counter rather than the checked-in value.
@@ -161,32 +150,45 @@ jobs:
             -archivePath build/DosiCrew.xcarchive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="-" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
-            CODE_SIGNING_ALLOWED=YES \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
 
-      - name: Check the archive carries its entitlements
+      - name: Give the archive its entitlements to carry
         run: |
-          # Checked here as well as after the export, because these two steps
-          # fail for different reasons and the distinction is the whole
-          # diagnosis: missing here means the archive never had them; missing
-          # only after the export means the profile dropped them.
+          # This is the file `exportArchive` reads to find out what the app is
+          # entitled to before it re-signs: archived-expanded-entitlements.xcent
+          # inside the archived .app. Xcode writes it while archiving — but only
+          # when it signs, and this archive is unsigned. Without it the export
+          # signs with the bare minimum the profile brings on its own
+          # (application-identifier, team-identifier, beta-reports-active,
+          # get-task-allow), which is exactly the app Build 6 was: no iCloud
+          # container, and a trap on launch inside
+          # -[CKContainerImplementation _checkRequiredEntitlements].
+          #
+          # So it gets written by hand, from the same file the target builds
+          # against. The environment key is deliberately not in it — the export
+          # step adds that one from iCloudContainerEnvironment.
           APP=$(find build/DosiCrew.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
           [ -n "$APP" ] || { echo "::error::No .app inside the archive."; exit 1; }
-          codesign -dv "$APP" 2>&1 || true
-          codesign -d --entitlements :- "$APP" > archive-entitlements.plist 2>/dev/null || true
-          cat archive-entitlements.plist
-          if [ ! -s archive-entitlements.plist ]; then
-            echo "::error::The archived app is not signed at all, so it carries no entitlements. CODE_SIGN_IDENTITY=- should have ad-hoc signed it; check the archive step's build settings."
+
+          XCENT="$APP/archived-expanded-entitlements.xcent"
+          if [ -f "$XCENT" ]; then
+            echo "Xcode wrote it after all:"
+          else
+            cp Config/DosiCrew.Release.entitlements "$XCENT"
+            echo "Written from Config/DosiCrew.Release.entitlements:"
+          fi
+          plutil -lint "$XCENT"
+          plutil -p "$XCENT"
+
+          # A typo in the path above would leave a file nobody reads, and the
+          # export would fail three steps later for a reason that looks
+          # unrelated. Cheaper to insist here.
+          if ! grep -q "iCloud.es.reichenbach.DosiCrew" "$XCENT"; then
+            echo "::error::The entitlements file carries no iCloud container. Check Config/DosiCrew.Release.entitlements."
             exit 1
           fi
-          if ! grep -q "iCloud.es.reichenbach.DosiCrew" archive-entitlements.plist; then
-            echo "::error::The archived app is signed but carries no iCloud container entitlement, so CODE_SIGN_ENTITLEMENTS did not reach it. Check that the Release configuration still points at Config/DosiCrew.Release.entitlements."
-            exit 1
-          fi
-          echo "The archive carries its entitlements."
 
       - name: Export and sign the IPA
         env:
