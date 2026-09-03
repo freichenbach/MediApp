@@ -141,6 +141,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     case note = 4
     case bloodPressure = 5
     case bloodSugar = 6
+    case seizure = 7
 
     var id: Int16 { rawValue }
 
@@ -153,6 +154,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .note: return "Note"
         case .bloodPressure: return "Blood pressure"
         case .bloodSugar: return "Blood sugar"
+        case .seizure: return "Seizure"
         }
     }
 
@@ -165,6 +167,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .note: return "note.text"
         case .bloodPressure: return "heart.circle"
         case .bloodSugar: return "drop.circle"
+        case .seizure: return "waveform.path.ecg"
         }
     }
 
@@ -177,6 +180,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .note: return .secondary
         case .bloodPressure: return .pink
         case .bloodSugar: return .indigo
+        case .seizure: return .yellow
         }
     }
 
@@ -186,6 +190,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .fever: return "°C"
         case .bloodPressure: return BloodPressure.unit
         case .bloodSugar: return BloodSugarUnit.mgPerDeciliter.rawValue
+        case .seizure: return SeizureDuration.unit
         default: return nil
         }
     }
@@ -197,6 +202,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         switch self {
         case .bloodPressure: return .bloodPressure
         case .bloodSugar: return .bloodSugar
+        case .seizure: return .seizure
         case .fever: return .single(defaultUnit: "°C")
         case .sideEffect, .vomiting, .doctorVisit, .note: return .single(defaultUnit: nil)
         }
@@ -206,7 +212,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     /// open. Measuring is the whole point of these three.
     var startsWithMeasurement: Bool {
         switch self {
-        case .fever, .bloodPressure, .bloodSugar: return true
+        case .fever, .bloodPressure, .bloodSugar, .seizure: return true
         default: return false
         }
     }

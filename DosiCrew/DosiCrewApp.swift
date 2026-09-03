@@ -35,6 +35,20 @@ enum AppSettings {
         return trimmed.isEmpty ? String(localized: "Someone") : trimmed
     }
 
+    static let lastSeizureTypeKey = "lastSeizureType"
+
+    /// The kind of seizure last recorded, offered again next time.
+    ///
+    /// A child with atypical absences has atypical absences; after the first
+    /// entry the picker is already right, and recording a seizure becomes two
+    /// taps at a moment when nobody has attention to spare. Per device rather
+    /// than synced: it is a convenience, and syncing it would mean one person's
+    /// entry silently changing what the other sees preselected.
+    static var lastSeizureType: SeizureType? {
+        get { SeizureType.from(code: UserDefaults.standard.string(forKey: lastSeizureTypeKey)) }
+        set { UserDefaults.standard.set(newValue?.rawValue, forKey: lastSeizureTypeKey) }
+    }
+
     static var hasPersonName: Bool {
         !(UserDefaults.standard.string(forKey: personNameKey) ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

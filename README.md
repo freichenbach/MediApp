@@ -381,14 +381,15 @@ in der Produktionsumgebung dürfen keine neuen Felder entstehen. Ohne Deploy
 scheitert die Synchronisation für jeden Datensatz, der das Feld benutzt — die
 App läuft weiter, aber die anderen sehen den Eintrag nie.
 
-Zuletzt betraf das `measurementSecondaryValue` an `CareEvent`, den zweiten Wert
-eines Blutdrucks. Core Data nennt das Feld in CloudKit `CD_` plus dem
-Attributnamen.
+Offen sind derzeit zwei Felder an `CareEvent`: `measurementSecondaryValue`
+(Double, der zweite Wert eines Blutdrucks) und `detailCode` (String, die
+Anfallsart). Core Data nennt ein Feld in CloudKit `CD_` plus dem Attributnamen.
 
 **Im Browser, der kürzeste Weg für ein einzelnes Feld:** CloudKit Console →
 Schema → Record Types → Umgebung **Development** → `CD_CareEvent` →
-*Add Field* → Name `CD_measurementSecondaryValue`, Typ **Double** → speichern →
-*Deploy Schema Changes* → Production.
+*Add Field* → `CD_measurementSecondaryValue` als **Double** und
+`CD_detailCode` als **String** → speichern → *Deploy Schema Changes* →
+Production.
 
 **Über die App**, wenn es mehrere Felder sind oder der Name unsicher ist: den
 Release-Workflow mit `icloud_environment` = **Development** starten, mit diesem

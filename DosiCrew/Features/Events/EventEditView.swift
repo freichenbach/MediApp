@@ -21,6 +21,7 @@ struct EventEditView: View {
     /// takes two numbers.
     @State private var secondaryText: String = ""
     @State private var bloodSugarUnit: BloodSugarUnit = .mgPerDeciliter
+    @State private var seizureType: SeizureType = .unknown
     @State private var loaded = false
 
     private var isNew: Bool { event == nil }
@@ -53,6 +54,9 @@ struct EventEditView: View {
                     // number behind; keeping it would silently attach a
                     // diastolic value to a temperature.
                     if newValue.measurementShape != .bloodPressure { secondaryText = "" }
+                    if newValue == .seizure, let last = AppSettings.lastSeizureType {
+                        seizureType = last
+                    }
                 }
 
                 TextField("Title", text: $title)
@@ -148,6 +152,44 @@ struct EventEditView: View {
                     .foregroundStyle(.secondary)
             }
 
+        case .seizure:
+            Picker("Kind of seizure", selection: $seizureType) {
+                // Grouped, because thirteen flat entries are hard to scan
+                // while something is happening in the room.
+                ForEach(SeizureType.Group.allCases) { group in
+                    Section(group.label) {
+                        ForEach(group.types) { type in
+                            Text(type.label).tag(type)
+                        }
+                    }
+                }
+            }
+            // Its own page rather than a menu: thirteen entries in three
+            // groups need room, and this is often being tapped one-handed
+            // while watching a child.
+            .pickerStyle(.navigationLink)
+            LabeledContent("Duration") {
+                HStack(spacing: 4) {
+                    TextField("0", text: $measurementText)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                    Text("seconds").foregroundStyle(.secondary)
+                }
+            }
+            if let duration = seizureDurationHint {
+                Text(duration)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if exceedsEmergencyPlanThreshold {
+                Label(
+                    "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs.",
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                .font(.footnote)
+                .foregroundStyle(.orange)
+            }
+
         case .single, .noValue:
             HStack {
                 TextField("0", text: $measurementText)
@@ -166,6 +208,8 @@ struct EventEditView: View {
             Text("Systolic over diastolic, as the cuff reads them — for example 120 over 80.")
         case .bloodSugar:
             Text("Enter it in the unit you read. The other one is worked out for you, so nobody has to convert in their head.")
+        case .seizure:
+            Text("In seconds — absences are counted in seconds, and a field asking for minutes would put a decimal in the way. The note below is the place for what it looked like.")
         case .single, .noValue:
             Text("For example a temperature of 38.9 °C.")
         }
@@ -182,6 +226,19 @@ struct EventEditView: View {
         let diastolic = DecimalText.value(of: secondaryText)
         guard BloodPressure.isReversed(systolic: systolic, diastolic: diastolic) else { return nil }
         return "The lower number is not below the upper one — are they the wrong way round?"
+    }
+
+    /// Reads back what was typed, so "135" is visibly two and a quarter minutes.
+    private var seizureDurationHint: String? {
+        let seconds = DecimalText.value(of: measurementText)
+        guard seconds >= 60 else { return nil }
+        return "= " + SeizureDuration.description(seconds: seconds)
+    }
+
+    private var exceedsEmergencyPlanThreshold: Bool {
+        SeizureDuration.exceedsEmergencyPlanThreshold(
+            seconds: DecimalText.value(of: measurementText)
+        )
     }
 
     private var convertedBloodSugar: String? {
@@ -208,6 +265,7 @@ struct EventEditView: View {
                 ? DecimalText.text(for: event.measurementSecondaryValue)
                 : ""
             bloodSugarUnit = BloodSugarUnit.from(unitString: event.measurementUnit) ?? .mgPerDeciliter
+            seizureType = SeizureType.from(code: event.detailCode) ?? .unknown
         } else {
             category = .fever
             measurementUnit = EventCategory.fever.suggestedUnit ?? ""
@@ -246,18 +304,31 @@ struct EventEditView: View {
 
         switch (hasMeasurement, category.measurementShape) {
         case (true, .bloodPressure):
+            target.detailCode = nil
             target.measurementSecondaryValue = DecimalText.value(of: secondaryText)
             target.measurementUnit = BloodPressure.unit
+        case (_, .seizure):
+            // Kept whether or not a duration was caught: nobody times the first
+            // seconds of a seizure, and the kind is the half a neurologist
+            // would rather have.
+            target.detailCode = seizureType.rawValue
+            target.measurementSecondaryValue = 0
+            target.measurementUnit = SeizureDuration.unit
+            AppSettings.lastSeizureType = seizureType
+
         case (true, .bloodSugar):
+            target.detailCode = nil
             // The unit is stored as entered and the value is never converted:
             // a stored conversion would round somebody's reading and hand the
             // doctor a figure no meter ever showed.
             target.measurementSecondaryValue = 0
             target.measurementUnit = bloodSugarUnit.rawValue
         case (true, _):
+            target.detailCode = nil
             target.measurementSecondaryValue = 0
             target.measurementUnit = measurementUnit.trimmingCharacters(in: .whitespaces).nilIfEmpty
         case (false, _):
+            target.detailCode = nil
             target.measurementSecondaryValue = 0
             target.measurementUnit = nil
         }

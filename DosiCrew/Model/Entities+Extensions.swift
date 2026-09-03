@@ -265,6 +265,11 @@ extension CareEvent {
     /// people read two different ones, and a number without the unit they think
     /// in is a number they have to convert in their head.
     var measurementDescription: String? {
+        // A seizure whose duration nobody caught still carries its kind, and
+        // that is the half a neurologist would rather have.
+        if categoryEnum == .seizure, !hasMeasurement {
+            return SeizureType.from(code: detailCode)?.plainLabel
+        }
         guard hasMeasurement else { return nil }
 
         switch categoryEnum.measurementShape {
@@ -277,6 +282,15 @@ extension CareEvent {
         case .bloodSugar:
             let unit = BloodSugarUnit.from(unitString: measurementUnit) ?? .mgPerDeciliter
             return unit.descriptionWithConversion(measurementValue)
+
+        case .seizure:
+            // The kind first: for a neurologist reading the diary, "atypical
+            // absence" is the fact and the duration qualifies it.
+            let kind = SeizureType.from(code: detailCode)?.plainLabel
+            let duration = measurementValue > 0
+                ? SeizureDuration.description(seconds: measurementValue)
+                : nil
+            return [kind, duration].compactMap { $0 }.joined(separator: " · ").nilIfEmpty
 
         case .single, .noValue:
             let value = Medication.doseFormatter.string(from: NSNumber(value: measurementValue))

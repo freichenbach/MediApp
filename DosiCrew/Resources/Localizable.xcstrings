@@ -691,6 +691,52 @@
         }
       }
     },
+    "Atonic (drop attack)": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atonisch (Sturzanfall)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atonic (drop attack)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atónica (caída)"
+          }
+        }
+      }
+    },
+    "Atypical absence": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atypische Absence"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atypical absence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausencia atípica"
+          }
+        }
+      }
+    },
     "Back to today": {
       "extractionState": "manual",
       "localizations": {
@@ -917,6 +963,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Niños"
+          }
+        }
+      }
+    },
+    "Clonic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klonisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clonic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clónica"
           }
         }
       }
@@ -1381,6 +1450,29 @@
         }
       }
     },
+    "Duration": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dauer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duración"
+          }
+        }
+      }
+    },
     "Each child is shared separately.": {
       "extractionState": "manual",
       "localizations": {
@@ -1538,6 +1630,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Introdúzcalo en la unidad que lea. La otra se calcula sola, para que nadie tenga que convertir de cabeza."
+          }
+        }
+      }
+    },
+    "Epileptic spasms": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Epileptische Spasmen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Epileptic spasms"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Espasmos epilépticos"
           }
         }
       }
@@ -1887,6 +2002,98 @@
         }
       }
     },
+    "Focal onset": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokaler Beginn"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal onset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio focal"
+          }
+        }
+      }
+    },
+    "Focal to bilateral tonic-clonic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokal zu bilateral tonisch-klonisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal to bilateral tonic-clonic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal a tónico-clónica bilateral"
+          }
+        }
+      }
+    },
+    "Focal, aware": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokal, bei Bewusstsein"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal, aware"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal, consciente"
+          }
+        }
+      }
+    },
+    "Focal, impaired awareness": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokal, mit Bewusstseinsstörung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal, impaired awareness"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focal, con alteración de la consciencia"
+          }
+        }
+      }
+    },
     "For example a temperature of 38.9 °C.": {
       "extractionState": "manual",
       "localizations": {
@@ -1952,6 +2159,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Forma"
+          }
+        }
+      }
+    },
+    "Generalised onset": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generalisierter Beginn"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generalised onset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio generalizado"
           }
         }
       }
@@ -2186,6 +2416,29 @@
         }
       }
     },
+    "In seconds — absences are counted in seconds, and a field asking for minutes would put a decimal in the way. The note below is the place for what it looked like.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Sekunden — Absencen werden in Sekunden gezählt, und ein Feld für Minuten hätte immer eine Kommastelle im Weg. Wie es aussah, gehört in die Notiz darunter."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In seconds — absences are counted in seconds, and a field asking for minutes would put a decimal in the way. The note below is the place for what it looked like."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En segundos: las ausencias se cuentan en segundos, y un campo en minutos obligaría a poner decimales. Cómo fue va en la nota de abajo."
+          }
+        }
+      }
+    },
     "Injection": {
       "extractionState": "manual",
       "localizations": {
@@ -2297,6 +2550,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volver a hoy"
+          }
+        }
+      }
+    },
+    "Kind of seizure": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Art des Anfalls"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind of seizure"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo de crisis"
           }
         }
       }
@@ -2577,6 +2853,29 @@
         }
       }
     },
+    "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Länger als fünf Minuten. Die meisten Notfallpläne sagen dazu etwas — was für dieses Kind gilt, steht in seinem."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más de cinco minutos. Casi todos los planes de emergencia dicen algo al respecto; lo que vale para este niño está en el suyo."
+          }
+        }
+      }
+    },
     "Manage sharing": {
       "extractionState": "manual",
       "localizations": {
@@ -2803,6 +3102,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mi hijo"
+          }
+        }
+      }
+    },
+    "Myoclonic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Myoklonisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Myoclonic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mioclónica"
+          }
+        }
+      }
+    },
+    "Myoclonic absence": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Myoklonische Absence"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Myoclonic absence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausencia mioclónica"
           }
         }
       }
@@ -3447,6 +3792,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Otro"
+          }
+        }
+      }
+    },
+    "Other or unclear": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes oder unklar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other or unclear"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra o poco clara"
           }
         }
       }
@@ -4275,6 +4643,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Horario"
+          }
+        }
+      }
+    },
+    "Seizure": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anfall"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seizure"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crisis"
           }
         }
       }
@@ -5337,6 +5728,52 @@
         }
       }
     },
+    "Tonic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tonisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tonic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tónica"
+          }
+        }
+      }
+    },
+    "Tonic-clonic": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tonisch-klonisch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tonic-clonic"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tónico-clónica"
+          }
+        }
+      }
+    },
     "Treatment period": {
       "extractionState": "manual",
       "localizations": {
@@ -5379,6 +5816,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Doble"
+          }
+        }
+      }
+    },
+    "Typical absence": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typische Absence"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typical absence"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausencia típica"
           }
         }
       }
@@ -6023,6 +6483,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "pulsación"
+          }
+        }
+      }
+    },
+    "seconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sekunden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seconds"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "segundos"
           }
         }
       }

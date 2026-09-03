@@ -1007,3 +1007,66 @@ final class MeasurementTests: XCTestCase {
         XCTAssertNil(EventCategory(rawValue: 99))
     }
 }
+
+// MARK: - Seizures
+
+/// A seizure diary is read by a neurologist, and the two things they look for
+/// are which kind and how long. Both have to survive storage, iCloud and a
+/// future version of the app unchanged.
+final class SeizureTests: XCTestCase {
+
+    /// The codes sit in the database and travel through iCloud. Changing one
+    /// would silently turn every recorded atypical absence into something else,
+    /// and nothing would fail loudly enough to notice.
+    func testTheStoredCodesNeverChange() {
+        XCTAssertEqual(SeizureType.atypicalAbsence.rawValue, "atypical-absence")
+        XCTAssertEqual(SeizureType.tonicClonic.rawValue, "tonic-clonic")
+        XCTAssertEqual(SeizureType.focalImpairedAwareness.rawValue, "focal-impaired-awareness")
+        XCTAssertEqual(SeizureType.tonic.rawValue, "tonic")
+        XCTAssertEqual(SeizureType.unknown.rawValue, "unknown")
+    }
+
+    func testEveryKindAppearsInExactlyOneGroup() {
+        let grouped = SeizureType.Group.allCases.flatMap(\.types)
+        XCTAssertEqual(
+            Set(grouped), Set(SeizureType.allCases),
+            "A kind missing from every group would be invisible in the picker"
+        )
+        XCTAssertEqual(grouped.count, SeizureType.allCases.count, "A kind is listed twice")
+    }
+
+    func testACodeIsRecognisedAgainAfterStorage() {
+        XCTAssertEqual(SeizureType.from(code: "atypical-absence"), .atypicalAbsence)
+        XCTAssertEqual(SeizureType.from(code: " tonic-clonic "), .tonicClonic)
+        XCTAssertNil(SeizureType.from(code: nil))
+        // An entry written by a future version with a kind this build does not
+        // know. Better an event without a kind than a crash.
+        XCTAssertNil(SeizureType.from(code: "gelastic"))
+    }
+
+    // MARK: Duration
+
+    func testShortSeizuresReadInSeconds() {
+        XCTAssertEqual(SeizureDuration.description(seconds: 8), "8 s")
+        XCTAssertEqual(SeizureDuration.description(seconds: 45), "45 s")
+    }
+
+    /// Nobody says "one hundred and thirty-five seconds".
+    func testLongerSeizuresReadInMinutes() {
+        XCTAssertEqual(SeizureDuration.description(seconds: 60), "1:00 min")
+        XCTAssertEqual(SeizureDuration.description(seconds: 135), "2:15 min")
+        XCTAssertEqual(SeizureDuration.description(seconds: 605), "10:05 min")
+    }
+
+    func testTheThresholdMostEmergencyPlansAreWrittenAround() {
+        XCTAssertFalse(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 299))
+        XCTAssertTrue(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 300))
+        XCTAssertTrue(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 420))
+    }
+
+    func testASeizureAsksForAKindAndADuration() {
+        XCTAssertEqual(EventCategory.seizure.measurementShape, .seizure)
+        XCTAssertEqual(EventCategory.seizure.rawValue, 7)
+        XCTAssertTrue(EventCategory.seizure.startsWithMeasurement)
+    }
+}

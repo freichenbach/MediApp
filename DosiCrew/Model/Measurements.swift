@@ -15,9 +15,147 @@ enum MeasurementShape: Equatable {
     /// One number in a unit that has to be chosen from a fixed pair, because
     /// the two differ by a factor of eighteen.
     case bloodSugar
+    /// A seizure: which kind it was, and how long it lasted.
+    case seizure
     /// Named `noValue` rather than `none` so a switch never has to be read
     /// twice to tell it apart from `Optional.none`.
     case noValue
+}
+
+// MARK: - Seizures
+
+/// The kinds of seizure, following the ILAE 2017 classification.
+///
+/// The wording is the classification's, not a simplification of it. A seizure
+/// diary is read by a neurologist, and "atypical absence" means something
+/// precise to them that "staring spell" does not — a report that renamed things
+/// to sound friendlier would be worth less in the only room where it matters.
+///
+/// Stored as strings rather than numbers. Codes travel through iCloud and sit
+/// in the database for years; a string still says what it means when somebody
+/// opens the CloudKit console in two years, and inserting a kind in the middle
+/// of the list can never silently renumber the ones already recorded.
+enum SeizureType: String, CaseIterable, Identifiable {
+
+    // Generalised onset
+    case typicalAbsence = "typical-absence"
+    case atypicalAbsence = "atypical-absence"
+    case myoclonicAbsence = "myoclonic-absence"
+    case tonicClonic = "tonic-clonic"
+    case tonic
+    case clonic
+    case myoclonic
+    case atonic
+    case epilepticSpasms = "epileptic-spasms"
+
+    // Focal onset
+    case focalAware = "focal-aware"
+    case focalImpairedAwareness = "focal-impaired-awareness"
+    case focalToBilateralTonicClonic = "focal-to-bilateral-tonic-clonic"
+
+    case unknown
+
+    var id: String { rawValue }
+
+    var label: LocalizedStringKey {
+        switch self {
+        case .typicalAbsence: return "Typical absence"
+        case .atypicalAbsence: return "Atypical absence"
+        case .myoclonicAbsence: return "Myoclonic absence"
+        case .tonicClonic: return "Tonic-clonic"
+        case .tonic: return "Tonic"
+        case .clonic: return "Clonic"
+        case .myoclonic: return "Myoclonic"
+        case .atonic: return "Atonic (drop attack)"
+        case .epilepticSpasms: return "Epileptic spasms"
+        case .focalAware: return "Focal, aware"
+        case .focalImpairedAwareness: return "Focal, impaired awareness"
+        case .focalToBilateralTonicClonic: return "Focal to bilateral tonic-clonic"
+        case .unknown: return "Other or unclear"
+        }
+    }
+
+    /// Plain text for the report, which is a PDF and cannot resolve a
+    /// `LocalizedStringKey`.
+    var plainLabel: String {
+        switch self {
+        case .typicalAbsence: return String(localized: "Typical absence")
+        case .atypicalAbsence: return String(localized: "Atypical absence")
+        case .myoclonicAbsence: return String(localized: "Myoclonic absence")
+        case .tonicClonic: return String(localized: "Tonic-clonic")
+        case .tonic: return String(localized: "Tonic")
+        case .clonic: return String(localized: "Clonic")
+        case .myoclonic: return String(localized: "Myoclonic")
+        case .atonic: return String(localized: "Atonic (drop attack)")
+        case .epilepticSpasms: return String(localized: "Epileptic spasms")
+        case .focalAware: return String(localized: "Focal, aware")
+        case .focalImpairedAwareness: return String(localized: "Focal, impaired awareness")
+        case .focalToBilateralTonicClonic: return String(localized: "Focal to bilateral tonic-clonic")
+        case .unknown: return String(localized: "Other or unclear")
+        }
+    }
+
+    /// How the picker is grouped, because thirteen flat entries are hard to
+    /// scan while something is happening in the room.
+    enum Group: String, CaseIterable, Identifiable {
+        case generalised, focal, other
+        var id: String { rawValue }
+
+        var label: LocalizedStringKey {
+            switch self {
+            case .generalised: return "Generalised onset"
+            case .focal: return "Focal onset"
+            case .other: return "Other"
+            }
+        }
+
+        var types: [SeizureType] {
+            switch self {
+            case .generalised:
+                return [.typicalAbsence, .atypicalAbsence, .myoclonicAbsence,
+                        .tonicClonic, .tonic, .clonic, .myoclonic, .atonic, .epilepticSpasms]
+            case .focal:
+                return [.focalAware, .focalImpairedAwareness, .focalToBilateralTonicClonic]
+            case .other:
+                return [.unknown]
+            }
+        }
+    }
+
+    static func from(code: String?) -> SeizureType? {
+        guard let code else { return nil }
+        return SeizureType(rawValue: code.trimmingCharacters(in: .whitespaces))
+    }
+}
+
+/// How long a seizure lasted, kept in seconds.
+///
+/// Seconds because that is what absences are counted in — five, twelve, twenty
+/// — and a field asking for minutes would force a decimal onto the most common
+/// entry of all.
+enum SeizureDuration {
+    static let unit = "s"
+
+    /// "18 s" below a minute, "2:15 min" above it. Nobody says "135 seconds".
+    static func description(seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        guard total >= 60 else { return "\(total) \(unit)" }
+        let minutes = total / 60
+        let rest = total % 60
+        return String(format: "%d:%02d min", minutes, rest)
+    }
+
+    /// The threshold nearly every epilepsy emergency plan is written around.
+    ///
+    /// Named here so the editor can mention it. The app does not tell anybody
+    /// what to do — that is what their own plan is for — but a seizure diary
+    /// that stays silent while somebody types "7" into a duration field would
+    /// be withholding the one number they are watching for.
+    static let emergencyPlanThreshold: TimeInterval = 5 * 60
+
+    static func exceedsEmergencyPlanThreshold(seconds: Double) -> Bool {
+        seconds >= emergencyPlanThreshold
+    }
 }
 
 // MARK: - Blood pressure
