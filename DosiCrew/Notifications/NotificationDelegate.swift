@@ -58,63 +58,53 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
     /// Writes on a background context: the app may not even be in the
     /// foreground when the action is tapped.
+    ///
+    /// Everything goes through `withBackgroundContext`, which refuses to run at
+    /// all when no store is open — this path fires at the one moment when that
+    /// is a real possibility, a reminder answered while the app is cold.
     private func markGiven(medicationID: UUID, scheduledAt: Date) async {
-        let container = PersistenceController.shared.container
         let personName = AppSettings.personName
+        let persistence = PersistenceController.shared
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            let context = container.newBackgroundContext()
-            context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
-            context.transactionAuthor = "notification"
-            context.perform {
-                defer { continuation.resume() }
+        await persistence.withBackgroundContext(author: "notification") { context in
+            let request = NSFetchRequest<Medication>(entityName: "Medication")
+            request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
+            request.fetchLimit = 1
+            guard let medication = (try? context.fetch(request))?.first else { return }
 
-                let request = NSFetchRequest<Medication>(entityName: "Medication")
-                request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
-                request.fetchLimit = 1
-                guard let medication = (try? context.fetch(request))?.first else { return }
+            // Somebody may have ticked this slot off in the meantime — from
+            // another device, or from the app itself. Do not log it twice.
+            let existing = NSFetchRequest<DoseLog>(entityName: "DoseLog")
+            existing.predicate = NSPredicate(
+                format: "medication == %@ AND scheduledAt >= %@ AND scheduledAt <= %@",
+                medication,
+                scheduledAt.addingTimeInterval(-ScheduleEngine.slotMatchTolerance) as NSDate,
+                scheduledAt.addingTimeInterval(ScheduleEngine.slotMatchTolerance) as NSDate
+            )
+            existing.fetchLimit = 1
+            guard ((try? context.fetch(existing))?.first) == nil else { return }
 
-                // Somebody may have ticked this slot off in the meantime — from
-                // another device, or from the app itself. Do not log it twice.
-                let existing = NSFetchRequest<DoseLog>(entityName: "DoseLog")
-                existing.predicate = NSPredicate(
-                    format: "medication == %@ AND scheduledAt >= %@ AND scheduledAt <= %@",
-                    medication,
-                    scheduledAt.addingTimeInterval(-ScheduleEngine.slotMatchTolerance) as NSDate,
-                    scheduledAt.addingTimeInterval(ScheduleEngine.slotMatchTolerance) as NSDate
-                )
-                existing.fetchLimit = 1
-                guard ((try? context.fetch(existing))?.first) == nil else { return }
+            DoseLog.make(
+                in: context,
+                medication: medication,
+                scheduledAt: scheduledAt,
+                status: .given,
+                personName: personName
+            )
 
-                DoseLog.make(
-                    in: context,
-                    medication: medication,
-                    scheduledAt: scheduledAt,
-                    status: .given,
-                    personName: personName
-                )
-
-                do {
-                    try context.save()
-                } catch {
-                    PersistenceController.logger.error("Logging from a notification failed: \(error.localizedDescription)")
-                    context.rollback()
-                }
-            }
+            // Through the controller, not `try context.save()`: only the
+            // controller refuses a save into a coordinator without stores, and
+            // Core Data answers that case with an exception Swift cannot catch.
+            persistence.save(context)
         }
     }
 
     private func medicationName(for medicationID: UUID) async -> String? {
-        let container = PersistenceController.shared.container
-        return await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
-            let context = container.newBackgroundContext()
-            context.perform {
-                let request = NSFetchRequest<Medication>(entityName: "Medication")
-                request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
-                request.fetchLimit = 1
-                let medication = (try? context.fetch(request))?.first
-                continuation.resume(returning: medication?.displayName)
-            }
-        }
+        await PersistenceController.shared.withBackgroundContext { context -> String? in
+            let request = NSFetchRequest<Medication>(entityName: "Medication")
+            request.predicate = NSPredicate(format: "id == %@", medicationID as CVarArg)
+            request.fetchLimit = 1
+            return (try? context.fetch(request))?.first?.displayName
+        } ?? nil
     }
 }
