@@ -445,3 +445,46 @@ final class StoreAssignmentTests: XCTestCase {
         XCTAssertNil(PersistenceController.store(for: medication))
     }
 }
+
+// MARK: - Info.plist
+
+/// Sharing needs two keys in the Info.plist, and losing either breaks the app's
+/// whole purpose in a way no other test would notice.
+///
+/// Build 16 shipped without `CKSharingSupported`. Everything compiled, the
+/// invitation was created and sent, and the person who tapped it got told they
+/// needed "a newer version of DosiCrew, which is not on the App Store" — a
+/// sentence that sends everyone looking at versions and TestFlight rather than
+/// at a missing key. The app was simply not registered as something that can
+/// open a CloudKit share.
+///
+/// The tests are hosted by the app, so `Bundle.main` is the built app itself:
+/// this asks the artefact, not the source.
+final class SharingInfoPlistTests: XCTestCase {
+
+    func testDeclaresCloudKitSharingSupport() {
+        let value = Bundle.main.object(forInfoDictionaryKey: "CKSharingSupported")
+        XCTAssertEqual(
+            value as? Bool, true,
+            "CKSharingSupported must be true, or iOS will not offer this app when somebody taps an invitation."
+        )
+    }
+
+    func testHandlesTheShareActivityType() {
+        let types = Bundle.main.object(forInfoDictionaryKey: "NSUserActivityTypes") as? [String]
+        XCTAssertEqual(
+            types?.contains("com.apple.coredata.cloudkit.zone.share"), true,
+            "Without this activity type the invitation never reaches the scene delegate, so acceptShare is never called."
+        )
+    }
+
+    /// The container the entitlements name and the one the code opens have to
+    /// be the same string. They are declared in different files, so nothing
+    /// else would catch them drifting apart.
+    func testContainerIdentifierMatchesTheEntitlements() {
+        XCTAssertEqual(
+            PersistenceController.cloudKitContainerIdentifier,
+            "iCloud.es.reichenbach.DosiCrew"
+        )
+    }
+}

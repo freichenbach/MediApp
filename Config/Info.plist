@@ -48,6 +48,15 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- The two halves of accepting an invitation, and both are needed.
+	     CKSharingSupported is how iOS knows this app can open a CloudKit share
+	     at all: without it the link matches nothing, and iOS tells the invited
+	     person they need "a newer version, which is not on the App Store" — a
+	     sentence that sends everyone looking at versions instead of at this
+	     file. NSUserActivityTypes is what then hands the invitation to the
+	     scene delegate. -->
+	<key>CKSharingSupported</key>
+	<true/>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>com.apple.coredata.cloudkit.zone.share</string>
