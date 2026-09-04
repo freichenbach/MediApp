@@ -181,14 +181,6 @@ struct EventEditView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            if exceedsEmergencyPlanThreshold {
-                Label(
-                    "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs.",
-                    systemImage: "exclamationmark.triangle.fill"
-                )
-                .font(.footnote)
-                .foregroundStyle(.orange)
-            }
 
         case .fixedUnit(let unit):
             LabeledContent(fixedUnitLabel(for: unit)) {
@@ -250,12 +242,6 @@ struct EventEditView: View {
         let seconds = DecimalText.value(of: measurementText)
         guard seconds >= 60 else { return nil }
         return "= " + SeizureDuration.description(seconds: seconds)
-    }
-
-    private var exceedsEmergencyPlanThreshold: Bool {
-        SeizureDuration.exceedsEmergencyPlanThreshold(
-            seconds: DecimalText.value(of: measurementText)
-        )
     }
 
     /// Saturation is the only fixed-unit reading so far; "Value" is what any

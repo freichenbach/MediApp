@@ -2899,29 +2899,6 @@
         }
       }
     },
-    "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Länger als fünf Minuten. Die meisten Notfallpläne sagen dazu etwas — was für dieses Kind gilt, steht in seinem."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Longer than five minutes. Most emergency plans say something about that — what applies to this child is in theirs."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Más de cinco minutos. Casi todos los planes de emergencia dicen algo al respecto; lo que vale para este niño está en el suyo."
-          }
-        }
-      }
-    },
     "Manage sharing": {
       "extractionState": "manual",
       "localizations": {

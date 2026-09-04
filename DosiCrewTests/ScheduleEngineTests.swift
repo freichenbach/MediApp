@@ -1061,12 +1061,6 @@ final class SeizureTests: XCTestCase {
         XCTAssertEqual(SeizureDuration.description(seconds: 605), "10:05 min")
     }
 
-    func testTheThresholdMostEmergencyPlansAreWrittenAround() {
-        XCTAssertFalse(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 299))
-        XCTAssertTrue(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 300))
-        XCTAssertTrue(SeizureDuration.exceedsEmergencyPlanThreshold(seconds: 420))
-    }
-
     func testASeizureAsksForAKindAndADuration() {
         XCTAssertEqual(EventCategory.seizure.measurementShape, .seizure)
         XCTAssertEqual(EventCategory.seizure.rawValue, 7)

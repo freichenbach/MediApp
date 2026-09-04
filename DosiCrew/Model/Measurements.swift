@@ -158,17 +158,16 @@ enum SeizureDuration {
         return String(format: "%d:%02d min", minutes, rest)
     }
 
-    /// The threshold nearly every epilepsy emergency plan is written around.
-    ///
-    /// Named here so the editor can mention it. The app does not tell anybody
-    /// what to do — that is what their own plan is for — but a seizure diary
-    /// that stays silent while somebody types "7" into a duration field would
-    /// be withholding the one number they are watching for.
-    static let emergencyPlanThreshold: TimeInterval = 5 * 60
-
-    static func exceedsEmergencyPlanThreshold(seconds: Double) -> Bool {
-        seconds >= emergencyPlanThreshold
-    }
+    // There is deliberately no threshold here, and none is to be added.
+    //
+    // Five minutes is the figure most epilepsy emergency plans are written
+    // around, and an earlier version said so beside the duration field. It is
+    // gone on purpose: the app records what happened and does not read it.
+    // A line that lights up at a particular number is the app judging a
+    // measurement, which is the step that turns a diary into a medical device
+    // — and it would be doing it without knowing this child, this diagnosis or
+    // this emergency plan. The plan the family was given says what their
+    // number is; the app has no business having an opinion next to it.
 }
 
 // MARK: - Blood pressure

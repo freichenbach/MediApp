@@ -683,8 +683,9 @@ sonst stünde die Gabe in zwanzig Minuten schon als Lücke im Bericht.
 - Änderungen am Core-Data-Modell sind nach dem ersten Produktiveinsatz nur noch
   additiv möglich. Die Ereignisse sind deshalb von Anfang an im Schema.
 - Nicht in dieser Version: Bedarfsmedikation („bei Bedarf" mit Mindestabstand und
-  Tagesmaximum), Verlaufsansicht und PDF-Export für den Arzt. Das Datenmodell
-  steht dem nicht im Weg.
-- **Kein Medizinprodukt.** Die App organisiert, wer wann was gibt. Sie prüft
-  weder Dosierungen noch Wechsel- oder Nebenwirkungen — das bleibt Sache von
-  Ärztin, Arzt oder Apotheke.
+  Tagesmaximum) und eine Verlaufsansicht. Das Datenmodell steht dem nicht im Weg.
+- **Kein Medizinprodukt — und das ist eine Entscheidung, keine Lücke.** Die App
+  hält fest, wer wann was gegeben hat, und zeigt es den anderen. Sie bewertet
+  keinen Messwert, berechnet keine Dosis und rät zu nichts. Was das für neue
+  Funktionen bedeutet, steht in [`CLAUDE.md`](CLAUDE.md) — die Liste dort ist
+  verbindlich.
