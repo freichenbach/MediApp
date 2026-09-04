@@ -4762,6 +4762,29 @@
         }
       }
     },
+    "Send the same link again": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denselben Link nochmal senden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send the same link again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar otra vez el mismo enlace"
+          }
+        }
+      }
+    },
     "Settings": {
       "extractionState": "manual",
       "localizations": {
@@ -5471,6 +5494,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "No se pudo abrir la invitación, así que el plan compartido no está aquí. %@"
+          }
+        }
+      }
+    },
+    "The invitation link stays valid until you stop sharing. Anybody who already has it does not need a new one.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Einladungslink bleibt gültig, bis Sie das Teilen beenden. Wer ihn schon hat, braucht keinen neuen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The invitation link stays valid until you stop sharing. Anybody who already has it does not need a new one."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El enlace de invitación sigue siendo válido hasta que deje de compartir. Quien ya lo tenga no necesita uno nuevo."
           }
         }
       }

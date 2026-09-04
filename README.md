@@ -400,6 +400,25 @@ ziehen. Ausführlicher steht das im Abschnitt darunter.
 Die Regel dahinter gilt für jede Modelländerung: In Development entsteht das
 Schema von selbst, in Production nur durch einen Deploy.
 
+### Einladen ist einmalig
+
+Eine Freigabe wird pro Kind genau einmal angelegt und danach wiederverwendet;
+`share(_:)` gibt eine bestehende zurück, statt eine neue zu erzeugen. Der
+Einladungslink bleibt gültig, bis das Teilen beendet wird — auch über
+App-Updates hinweg und auch, wenn er tagelang unbeantwortet liegt.
+
+Wer eingeladen wurde und noch nicht beigetreten ist, steht in der Teilen-Ansicht
+als „Einladung ausstehend". Solange jemand dort wartet, gibt es einen Knopf, der
+**denselben** Link noch einmal verschickt — für den häufigen Fall, dass er im
+Chat untergegangen ist. Neu einladen muss man dafür nicht, und man sollte es
+auch nicht: Wer den ersten Link schon hat, bekäme sonst zwei.
+
+Nur einmal war ein erneutes Einladen tatsächlich nötig, und das lag an Fehlern,
+die inzwischen behoben sind: Bis Build 5 luden die CloudKit-Stores nicht, es
+konnte also gar keine Freigabe entstehen; bis Build 17 fehlte
+`CKSharingSupported`, sodass ein angetippter Link auf der Gegenseite keine App
+fand.
+
 ### Teilen: das Schema muss das Teilen kennen
 
 Beim ersten Einladen kann diese Meldung kommen:

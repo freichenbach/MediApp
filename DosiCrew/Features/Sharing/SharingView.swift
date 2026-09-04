@@ -35,7 +35,16 @@ struct SharingView: View {
             } header: {
                 Text("People")
             } footer: {
-                Text("Everyone you invite sees the same plan and can tick off doses. Changes appear on the other iPhones within a few seconds.")
+                if share == nil {
+                    Text("Everyone you invite sees the same plan and can tick off doses. Changes appear on the other iPhones within a few seconds.")
+                } else {
+                    // Said outright because the alternative is guessing. An
+                    // invitation that has not been accepted yet looks exactly
+                    // like one that went missing, and the obvious reaction —
+                    // invite again — is both unnecessary and confusing for
+                    // whoever already has the first link.
+                    Text("The invitation link stays valid until you stop sharing. Anybody who already has it does not need a new one.")
+                }
             }
 
             Section {
@@ -49,6 +58,15 @@ struct SharingView: View {
                     }
                 }
                 .disabled(preparing)
+
+                // Only while somebody is actually waiting: that is when the
+                // link is wanted again, usually because it was lost in a chat.
+                // It is the same link, not a new invitation.
+                if let share, let url = share.url, hasPendingInvitation {
+                    ShareLink(item: url) {
+                        Label("Send the same link again", systemImage: "square.and.arrow.up")
+                    }
+                }
 
                 if share != nil {
                     Button(role: .destructive) {
@@ -96,6 +114,12 @@ struct SharingView: View {
                  ? "The others lose access immediately. Your own copy of the plan stays on this iPhone."
                  : "The plan disappears from this iPhone. The others keep it.")
         }
+    }
+
+    /// Somebody was invited and has not opened it yet.
+    private var hasPendingInvitation: Bool {
+        guard let share else { return false }
+        return share.participants.contains { $0.acceptanceStatus == .pending }
     }
 
     private var isOwner: Bool {
