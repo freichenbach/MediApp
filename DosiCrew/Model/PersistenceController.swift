@@ -518,11 +518,18 @@ final class PersistenceController {
     /// The second is a real failure, which used to reach the log and nowhere
     /// else. It is kept so the settings can say so.
     func acceptShare(metadata: CKShare.Metadata) {
+        let recordName = metadata.share.recordID.recordName
+
         guard let sharedStore else {
             Self.logger.notice("Share arrived before the shared store was open — holding it")
-            pendingShareInvitations.append(metadata)
+            hold(metadata)
             return
         }
+        // Held before the attempt, not after it. An app that is killed
+        // mid-request would otherwise lose the invitation altogether, and this
+        // is the one thing that must not need finding twice.
+        hold(metadata)
+
         container.acceptShareInvitations(from: [metadata], into: sharedStore) { [weak self] _, error in
             // CloudKit answers on whatever thread it happens to be on. The
             // settings read this from the main thread, and the app has already
@@ -530,42 +537,146 @@ final class PersistenceController {
             // the lock screen was the same mistake in the notification
             // delegate.
             DispatchQueue.main.async {
+                guard let self else { return }
                 if let error {
                     Self.logger.error("Accepting share failed: \(error.localizedDescription)")
-                    self?.shareAcceptanceError = error.localizedDescription
+                    self.shareAcceptanceError = error.localizedDescription
+                    // A share that no longer exists will never be accepted, and
+                    // retrying it every launch would keep an error on screen
+                    // for something nobody can fix. Everything else — no
+                    // network, iCloud signed out, a store that was not ready —
+                    // is worth trying again.
+                    if (error as? CKError)?.code == .unknownItem {
+                        self.release(shareRecordName: recordName)
+                    }
                 } else {
                     Self.logger.notice("Share accepted")
-                    self?.shareAcceptanceError = nil
+                    self.shareAcceptanceError = nil
+                    self.release(shareRecordName: recordName)
                 }
             }
         }
     }
 
-    /// Invitations that arrived before the store was ready, in the order they
-    /// came. Emptied by `acceptPendingShareInvitations()`.
-    private var pendingShareInvitations: [CKShare.Metadata] = []
+    /// Invitations that were tapped but could not be taken yet — kept on disk,
+    /// not just in memory.
+    ///
+    /// In memory was not enough. Somebody taps the link, the app opens before
+    /// the shared store does, the invitation is held — and then they close the
+    /// app. It is gone, and the only way back is to find that link again in a
+    /// chat, possibly weeks later. Nobody finds it.
+    ///
+    /// So it survives launches. Every start tries again once the stores are
+    /// open, until it works or the invitation is plainly dead.
+    private var heldInvitations: [HeldInvitation] {
+        get {
+            guard let data = UserDefaults.standard.data(forKey: Self.heldInvitationsKey),
+                  let held = try? JSONDecoder().decode([HeldInvitation].self, from: data)
+            else { return [] }
+            return held
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            UserDefaults.standard.set(data, forKey: Self.heldInvitationsKey)
+        }
+    }
+
+    private static let heldInvitationsKey = "heldShareInvitations"
+
+    /// After this an invitation is treated as dead rather than retried forever.
+    /// A month of failing is not a temporary problem, and the owner can always
+    /// send the link again.
+    static let invitationShelfLife: TimeInterval = 30 * 24 * 60 * 60
+
+    /// Whether an invitation first seen at `firstSeen` is still worth another
+    /// attempt. Its own function so the rule can be tested without conjuring a
+    /// `CKShare.Metadata`, which cannot be built outside CloudKit.
+    static func isInvitationWorthRetrying(firstSeen: Date, now: Date = Date()) -> Bool {
+        now.timeIntervalSince(firstSeen) < invitationShelfLife
+    }
+
+    /// `CKShare.Metadata` is `NSSecureCoding` but not `Codable`, so the archive
+    /// travels as bytes with the bookkeeping alongside it.
+    private struct HeldInvitation: Codable {
+        let archived: Data
+        let firstSeen: Date
+        /// Identifies the invitation without unarchiving it, so a second tap on
+        /// the same link does not stack up two copies.
+        let shareRecordName: String
+
+        init?(metadata: CKShare.Metadata) {
+            guard let data = try? NSKeyedArchiver.archivedData(
+                withRootObject: metadata,
+                requiringSecureCoding: true
+            ) else { return nil }
+            archived = data
+            firstSeen = Date()
+            shareRecordName = metadata.share.recordID.recordName
+        }
+
+        var metadata: CKShare.Metadata? {
+            try? NSKeyedUnarchiver.unarchivedObject(
+                ofClass: CKShare.Metadata.self,
+                from: archived
+            )
+        }
+    }
+
+    private func hold(_ metadata: CKShare.Metadata) {
+        guard let held = HeldInvitation(metadata: metadata) else {
+            Self.logger.error("An invitation could not be archived and is lost")
+            return
+        }
+        var all = heldInvitations.filter { $0.shareRecordName != held.shareRecordName }
+        all.append(held)
+        heldInvitations = all
+        Self.logger.notice("Invitation held for the next launch")
+    }
+
+    private func release(shareRecordName: String) {
+        heldInvitations = heldInvitations.filter { $0.shareRecordName != shareRecordName }
+    }
 
     /// Set when accepting an invitation failed, so the settings can say that
     /// the shared plan is missing for a reason rather than leaving the person
     /// to guess.
     private(set) var shareAcceptanceError: String?
 
-    /// Called once the stores are open. Does nothing in the ordinary case,
-    /// which is the point: it only matters on the launch that came from
-    /// tapping the invitation itself.
+    /// Called once the stores are open, on every launch.
+    ///
+    /// Does nothing at all in the ordinary case, which is the point: it matters
+    /// only for somebody whose invitation could not be taken the first time,
+    /// and it spares them having to find the link again.
     private func acceptPendingShareInvitations() {
-        guard !pendingShareInvitations.isEmpty else { return }
-        let held = pendingShareInvitations
-        pendingShareInvitations.removeAll()
+        // Drop the ones that have been failing for a month before anything
+        // else. They are not coming back, and the owner can send the link
+        // again — which is a better answer than an error that never clears.
+        let now = Date()
+        let fresh = heldInvitations.filter {
+            Self.isInvitationWorthRetrying(firstSeen: $0.firstSeen, now: now)
+        }
+        if fresh.count != heldInvitations.count {
+            Self.logger.notice("Discarded invitations older than a month")
+            heldInvitations = fresh
+        }
+
+        guard !fresh.isEmpty else { return }
         guard sharedStore != nil else {
             // No shared store at all — the local fallback, or CloudKit being
-            // unavailable. Retrying would not help; saying so does.
+            // unavailable. Nothing to retry against right now, but the
+            // invitations stay for the next launch.
             shareAcceptanceError = String(
                 localized: "The invitation could not be opened because iCloud is not available."
             )
             return
         }
-        for metadata in held {
+        for held in fresh {
+            guard let metadata = held.metadata else {
+                // Unreadable, most likely written by a different OS version.
+                // Keeping it would mean retrying something that can never work.
+                release(shareRecordName: held.shareRecordName)
+                continue
+            }
             acceptShare(metadata: metadata)
         }
     }

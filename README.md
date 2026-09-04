@@ -413,6 +413,18 @@ als „Einladung ausstehend". Solange jemand dort wartet, gibt es einen Knopf, d
 Chat untergegangen ist. Neu einladen muss man dafür nicht, und man sollte es
 auch nicht: Wer den ersten Link schon hat, bekäme sonst zwei.
 
+Konnte die App eine angetippte Einladung nicht sofort annehmen — weil der
+geteilte Store noch nicht offen war, iCloud gerade fehlte oder das Netz weg war
+—, hält sie sie fest und versucht es bei jedem Start erneut, über App-Neustarts
+hinweg. Vorher lag das nur im Speicher; wer die App danach schloss, musste den
+Link wiederfinden, und das ist Wochen später aussichtslos. Nach einem Monat
+vergeblicher Versuche wird eine Einladung verworfen, ebenso sofort, wenn die
+Freigabe gar nicht mehr existiert.
+
+Was die App dabei nicht kann: eine Einladung nachholen, die sie nie erreicht
+hat. Bekommt iOS den Link und kennt keine App dafür, erfährt DosiCrew davon
+nichts und hat nichts zu merken. Dafür gibt es den Knopf beim Einladenden.
+
 Nur einmal war ein erneutes Einladen tatsächlich nötig, und das lag an Fehlern,
 die inzwischen behoben sind: Bis Build 5 luden die CloudKit-Stores nicht, es
 konnte also gar keine Freigabe entstehen; bis Build 17 fehlte

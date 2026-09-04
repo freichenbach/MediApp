@@ -1118,3 +1118,52 @@ final class OxygenSaturationTests: XCTestCase {
         }
     }
 }
+
+// MARK: - Held invitations
+
+/// An invitation that could not be taken on the first attempt is kept and
+/// retried on later launches, because the alternative is asking somebody to
+/// find a link in a chat weeks later. Nobody finds it.
+///
+/// Only the shelf-life rule is checked here: `CKShare.Metadata` cannot be built
+/// outside CloudKit, so the archiving itself has no seam a unit test can reach.
+final class HeldInvitationTests: XCTestCase {
+
+    func testAFreshInvitationIsRetried() {
+        let now = Date()
+        XCTAssertTrue(
+            PersistenceController.isInvitationWorthRetrying(
+                firstSeen: now.addingTimeInterval(-60), now: now
+            )
+        )
+    }
+
+    func testAnInvitationIsStillRetriedAfterWeeks() {
+        // The case this exists for: the app could not take it, and the phone
+        // was not opened again for a fortnight.
+        let now = Date()
+        XCTAssertTrue(
+            PersistenceController.isInvitationWorthRetrying(
+                firstSeen: now.addingTimeInterval(-14 * 24 * 60 * 60), now: now
+            )
+        )
+    }
+
+    /// Retrying forever would keep an error on screen for something nobody can
+    /// fix from that side; the owner can send the link again instead.
+    func testAnInvitationThatHasFailedForAMonthIsGivenUpOn() {
+        let now = Date()
+        let old = now.addingTimeInterval(-PersistenceController.invitationShelfLife - 1)
+        XCTAssertFalse(
+            PersistenceController.isInvitationWorthRetrying(firstSeen: old, now: now)
+        )
+    }
+
+    func testTheBoundaryItselfStillCounts() {
+        let now = Date()
+        let exactly = now.addingTimeInterval(-PersistenceController.invitationShelfLife + 1)
+        XCTAssertTrue(
+            PersistenceController.isInvitationWorthRetrying(firstSeen: exactly, now: now)
+        )
+    }
+}
