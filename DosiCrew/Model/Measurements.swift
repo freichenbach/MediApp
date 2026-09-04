@@ -10,6 +10,11 @@ import Foundation
 enum MeasurementShape: Equatable {
     /// One number with a unit the person can type themselves.
     case single(defaultUnit: String?)
+    /// One number in a unit that is never anything else, so it is printed
+    /// beside the field rather than offered for editing. A percentage cannot
+    /// be entered in some other unit, and a field inviting one is only a place
+    /// for a typo.
+    case fixedUnit(String)
     /// Systolic over diastolic.
     case bloodPressure
     /// One number in a unit that has to be chosen from a fixed pair, because
@@ -20,6 +25,28 @@ enum MeasurementShape: Equatable {
     /// Named `noValue` rather than `none` so a switch never has to be read
     /// twice to tell it apart from `Optional.none`.
     case noValue
+}
+
+// MARK: - Oxygen saturation
+
+/// SpO₂, in percent.
+///
+/// One number, one unit, and the only bound worth enforcing: above 100 is not
+/// a reading but a slip of the finger. A low value is not a mistake to be
+/// argued with — it is the whole reason somebody is writing it down.
+enum OxygenSaturation {
+    static let unit = "%"
+
+    /// Physically impossible, so it is safe to call it out.
+    static func isImpossible(percent: Double) -> Bool {
+        percent > 100
+    }
+
+    /// Whole numbers: pulse oximeters read them that way, and a decimal would
+    /// suggest a precision the device does not have.
+    static func description(percent: Double) -> String {
+        "\(Int(percent.rounded())) \(unit)"
+    }
 }
 
 // MARK: - Seizures

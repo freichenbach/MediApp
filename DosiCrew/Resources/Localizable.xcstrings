@@ -277,6 +277,52 @@
         }
       }
     },
+    "A low reading is not a mistake — it is the reason for writing it down. Only a value above 100 % is flagged.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein niedriger Wert ist kein Fehler — er ist der Grund, ihn aufzuschreiben. Gewarnt wird nur über 100 %."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A low reading is not a mistake — it is the reason for writing it down. Only a value above 100 % is flagged."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un valor bajo no es un error: es la razón para anotarlo. Solo se avisa por encima del 100 %."
+          }
+        }
+      }
+    },
+    "Above 100 % is not a reading.": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über 100 % ist kein Messwert."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Above 100 % is not a reading."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por encima del 100 % no es una lectura."
+          }
+        }
+      }
+    },
     "Accepted": {
       "extractionState": "manual",
       "localizations": {
@@ -3865,6 +3911,29 @@
         }
       }
     },
+    "Oxygen saturation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauerstoffsättigung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oxygen saturation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saturación de oxígeno"
+          }
+        }
+      }
+    },
     "Page %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -4597,6 +4666,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suena aunque el iPhone esté en silencio."
+          }
+        }
+      }
+    },
+    "Saturation": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sättigung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saturation"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saturación"
           }
         }
       }
@@ -6000,6 +6092,29 @@
           "stringUnit": {
             "state": "translated",
             "value": "Medicamento sin nombre"
+          }
+        }
+      }
+    },
+    "Value": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Value"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valor"
           }
         }
       }

@@ -1073,3 +1073,48 @@ final class SeizureTests: XCTestCase {
         XCTAssertTrue(EventCategory.seizure.startsWithMeasurement)
     }
 }
+
+// MARK: - Oxygen saturation
+
+/// One number, one unit, and one bound. The interesting decision is what is
+/// *not* checked: a saturation of 82 is not a typo to argue with, it is the
+/// reason somebody reached for the app.
+final class OxygenSaturationTests: XCTestCase {
+
+    func testOnlyAPhysicallyImpossibleReadingIsFlagged() {
+        XCTAssertTrue(OxygenSaturation.isImpossible(percent: 101))
+        XCTAssertTrue(OxygenSaturation.isImpossible(percent: 981))
+        XCTAssertFalse(OxygenSaturation.isImpossible(percent: 100))
+        XCTAssertFalse(OxygenSaturation.isImpossible(percent: 98))
+    }
+
+    func testALowSaturationIsAcceptedWithoutArgument() {
+        // The value a parent is writing down at three in the morning. An app
+        // that questioned it would teach them to type something else.
+        XCTAssertFalse(OxygenSaturation.isImpossible(percent: 82))
+        XCTAssertFalse(OxygenSaturation.isImpossible(percent: 70))
+    }
+
+    /// Pulse oximeters read whole numbers; a decimal would claim a precision
+    /// the device does not have.
+    func testItReadsAsAWholePercentage() {
+        XCTAssertEqual(OxygenSaturation.description(percent: 98), "98 %")
+        XCTAssertEqual(OxygenSaturation.description(percent: 97.6), "98 %")
+    }
+
+    func testTheUnitIsFixedRatherThanTypedByHand() {
+        XCTAssertEqual(EventCategory.oxygenSaturation.measurementShape, .fixedUnit("%"))
+        XCTAssertEqual(EventCategory.oxygenSaturation.rawValue, 8)
+        XCTAssertTrue(EventCategory.oxygenSaturation.startsWithMeasurement)
+    }
+
+    /// Every category has to answer this, or the editor has no fields to show.
+    func testEveryCategoryHasAShape() {
+        for category in EventCategory.allCases {
+            switch category.measurementShape {
+            case .single, .fixedUnit, .bloodPressure, .bloodSugar, .seizure, .noValue:
+                continue
+            }
+        }
+    }
+}

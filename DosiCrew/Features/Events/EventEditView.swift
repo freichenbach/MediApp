@@ -190,6 +190,21 @@ struct EventEditView: View {
                 .foregroundStyle(.orange)
             }
 
+        case .fixedUnit(let unit):
+            LabeledContent(fixedUnitLabel(for: unit)) {
+                HStack(spacing: 4) {
+                    TextField("98", text: $measurementText)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                    Text(unit).foregroundStyle(.secondary)
+                }
+            }
+            if impossibleSaturation {
+                Label("Above 100 % is not a reading.", systemImage: "exclamationmark.triangle")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+
         case .single, .noValue:
             HStack {
                 TextField("0", text: $measurementText)
@@ -208,6 +223,8 @@ struct EventEditView: View {
             Text("Systolic over diastolic, as the cuff reads them — for example 120 over 80.")
         case .bloodSugar:
             Text("Enter it in the unit you read. The other one is worked out for you, so nobody has to convert in their head.")
+        case .fixedUnit:
+            Text("A low reading is not a mistake — it is the reason for writing it down. Only a value above 100 % is flagged.")
         case .seizure:
             Text("In seconds — absences are counted in seconds, and a field asking for minutes would put a decimal in the way. The note below is the place for what it looked like.")
         case .single, .noValue:
@@ -239,6 +256,19 @@ struct EventEditView: View {
         SeizureDuration.exceedsEmergencyPlanThreshold(
             seconds: DecimalText.value(of: measurementText)
         )
+    }
+
+    /// Saturation is the only fixed-unit reading so far; "Value" is what any
+    /// future one falls back to rather than being mislabelled as a saturation.
+    private func fixedUnitLabel(for unit: String) -> LocalizedStringKey {
+        unit == OxygenSaturation.unit ? "Saturation" : "Value"
+    }
+
+    /// The only bound worth enforcing here. A saturation of 82 is not a typo to
+    /// argue with; a saturation of 981 is a finger that slipped.
+    private var impossibleSaturation: Bool {
+        category.measurementShape == .fixedUnit(OxygenSaturation.unit)
+            && OxygenSaturation.isImpossible(percent: DecimalText.value(of: measurementText))
     }
 
     private var convertedBloodSugar: String? {
@@ -323,6 +353,11 @@ struct EventEditView: View {
             // doctor a figure no meter ever showed.
             target.measurementSecondaryValue = 0
             target.measurementUnit = bloodSugarUnit.rawValue
+        case (true, .fixedUnit(let unit)):
+            target.detailCode = nil
+            target.measurementSecondaryValue = 0
+            target.measurementUnit = unit
+
         case (true, _):
             target.detailCode = nil
             target.measurementSecondaryValue = 0

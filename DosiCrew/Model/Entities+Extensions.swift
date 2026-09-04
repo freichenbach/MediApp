@@ -292,6 +292,9 @@ extension CareEvent {
                 : nil
             return [kind, duration].compactMap { $0 }.joined(separator: " · ").nilIfEmpty
 
+        case .fixedUnit(let unit):
+            return "\(Int(measurementValue.rounded())) \(unit)"
+
         case .single, .noValue:
             let value = Medication.doseFormatter.string(from: NSNumber(value: measurementValue))
                 ?? "\(measurementValue)"

@@ -142,6 +142,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     case bloodPressure = 5
     case bloodSugar = 6
     case seizure = 7
+    case oxygenSaturation = 8
 
     var id: Int16 { rawValue }
 
@@ -155,6 +156,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .bloodPressure: return "Blood pressure"
         case .bloodSugar: return "Blood sugar"
         case .seizure: return "Seizure"
+        case .oxygenSaturation: return "Oxygen saturation"
         }
     }
 
@@ -168,6 +170,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .bloodPressure: return "heart.circle"
         case .bloodSugar: return "drop.circle"
         case .seizure: return "waveform.path.ecg"
+        case .oxygenSaturation: return "lungs.fill"
         }
     }
 
@@ -181,6 +184,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .bloodPressure: return .pink
         case .bloodSugar: return .indigo
         case .seizure: return .yellow
+        case .oxygenSaturation: return .cyan
         }
     }
 
@@ -191,6 +195,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .bloodPressure: return BloodPressure.unit
         case .bloodSugar: return BloodSugarUnit.mgPerDeciliter.rawValue
         case .seizure: return SeizureDuration.unit
+        case .oxygenSaturation: return OxygenSaturation.unit
         default: return nil
         }
     }
@@ -203,6 +208,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
         case .bloodPressure: return .bloodPressure
         case .bloodSugar: return .bloodSugar
         case .seizure: return .seizure
+        case .oxygenSaturation: return .fixedUnit(OxygenSaturation.unit)
         case .fever: return .single(defaultUnit: "°C")
         case .sideEffect, .vomiting, .doctorVisit, .note: return .single(defaultUnit: nil)
         }
@@ -212,7 +218,7 @@ enum EventCategory: Int16, CaseIterable, Identifiable {
     /// open. Measuring is the whole point of these three.
     var startsWithMeasurement: Bool {
         switch self {
-        case .fever, .bloodPressure, .bloodSugar, .seizure: return true
+        case .fever, .bloodPressure, .bloodSugar, .seizure, .oxygenSaturation: return true
         default: return false
         }
     }
