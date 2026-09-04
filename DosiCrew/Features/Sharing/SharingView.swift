@@ -43,7 +43,11 @@ struct SharingView: View {
                     // like one that went missing, and the obvious reaction —
                     // invite again — is both unnecessary and confusing for
                     // whoever already has the first link.
-                    Text("The invitation link stays valid until you stop sharing. Anybody who already has it does not need a new one.")
+                    //
+                    // The second sentence is the one that saves a puzzled
+                    // evening: whether a link works for somebody new depends on
+                    // a setting that lives in Apple's own dialog, not here.
+                    Text("The invitation link stays valid until you stop sharing, and sending it again never makes a second one. Whether somebody new can use it depends on “Who can access” under Manage sharing.")
                 }
             }
 
@@ -59,12 +63,18 @@ struct SharingView: View {
                 }
                 .disabled(preparing)
 
-                // Only while somebody is actually waiting: that is when the
-                // link is wanted again, usually because it was lost in a chat.
-                // It is the same link, not a new invitation.
-                if let share, let url = share.url, hasPendingInvitation {
+                // Whenever a share exists, not only while an invitation is
+                // outstanding. Tying it to a pending invitation was too narrow:
+                // once everybody invited has accepted, the button vanished —
+                // exactly when somebody wants to bring in a third person, a
+                // grandparent or a childminder. It is always the same link, and
+                // sending it again never creates a second share.
+                if let share, let url = share.url {
                     ShareLink(item: url) {
-                        Label("Send the same link again", systemImage: "square.and.arrow.up")
+                        Label(
+                            hasPendingInvitation ? "Send the same link again" : "Send the invitation link",
+                            systemImage: "square.and.arrow.up"
+                        )
                     }
                 }
 

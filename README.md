@@ -408,10 +408,17 @@ Einladungslink bleibt gültig, bis das Teilen beendet wird — auch über
 App-Updates hinweg und auch, wenn er tagelang unbeantwortet liegt.
 
 Wer eingeladen wurde und noch nicht beigetreten ist, steht in der Teilen-Ansicht
-als „Einladung ausstehend". Solange jemand dort wartet, gibt es einen Knopf, der
-**denselben** Link noch einmal verschickt — für den häufigen Fall, dass er im
-Chat untergegangen ist. Neu einladen muss man dafür nicht, und man sollte es
-auch nicht: Wer den ersten Link schon hat, bekäme sonst zwei.
+als „Einladung ausstehend". Solange eine Freigabe besteht, gibt es einen Knopf,
+der **denselben** Link verschickt — für den häufigen Fall, dass er im Chat
+untergegangen ist, und für die dritte Person, die später dazukommt. Neu
+einladen muss man dafür nicht, und man sollte es auch nicht: Wer den ersten
+Link schon hat, bekäme sonst zwei.
+
+Ob jemand Neues mit dem Link tatsächlich beitreten kann, hängt an Apples
+Einstellung *Zugriff* im Dialog hinter „Teilen verwalten": Bei „Nur eingeladene
+Personen" muss sie dort erst hinzugefügt werden, bei „Jeder mit dem Link"
+genügt der Link. Der Fußtext in der Ansicht sagt das, weil die Einstellung
+woanders wohnt als der Knopf.
 
 Konnte die App eine angetippte Einladung nicht sofort annehmen — weil der
 geteilte Store noch nicht offen war, iCloud gerade fehlte oder das Netz weg war
